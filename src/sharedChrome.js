@@ -11,6 +11,8 @@
     { href: "./requests-donors.html", label: "Requests & Donors", id: "requests" },
     { href: "./reports.html", label: "Reports", id: "reports" },
     { href: "./about.html", label: "About", id: "about" },
+    { href: "./auth.html", label: "Sign In", id: "auth" },
+    { href: "./hospital-login.html", label: "Hospital Login", id: "hospital" },
     { href: "./admin-login.html", label: "Admin", id: "admin" }
   ];
 
@@ -75,6 +77,8 @@
                   <a class="mega-card" href="./dashboard.html"><strong>AI Dashboard <span>→</span></strong><span>Regional inventory, charts, &amp; Shortage Predictor.</span></a>
                   <a class="mega-card" href="./network.html"><strong>Blood Network <span>→</span></strong><span>Real hospital map &amp; search.</span></a>
                   <a class="mega-card" href="./reports.html"><strong>Public Reports <span>→</span></strong><span>Published shortage &amp; forecast reports.</span></a>
+                  <a class="mega-card" href="./auth.html"><strong>Account Sign In <span>→</span></strong><span>Google OAuth &amp; Email account portal.</span></a>
+                  <a class="mega-card" href="./hospital-login.html"><strong>Hospital Login <span>→</span></strong><span>Department portal for blood requests &amp; inventory.</span></a>
                   <a class="mega-card" href="./admin-login.html"><strong>Admin Panel <span>→</span></strong><span>Protected report &amp; document management.</span></a>
                 </div>
               </div>
@@ -185,9 +189,10 @@
               <div class="footer-col">
                 <h4>Administration</h4>
                 <ul>
+                  <li><a href="./auth.html">Account Sign In / Up</a></li>
+                  <li><a href="./user-dashboard.html">User Account Dashboard</a></li>
+                  <li><a href="./hospital-login.html">Hospital Login</a></li>
                   <li><a href="./admin-login.html">Admin Login</a></li>
-                  <li><a href="./admin.html">Report Management</a></li>
-                  <li><a href="./about.html#architecture">API Architecture</a></li>
                 </ul>
               </div>
             </div>

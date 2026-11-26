@@ -29,6 +29,8 @@
       <button class="admin-nav-btn" data-view="inquiries">Requests &amp; Inquiries <span id="side-inq-count">0</span></button>
       <button class="admin-nav-btn" data-view="inventory">Blood Inventory <span id="side-inv-count">0</span></button>
       <button class="admin-nav-btn" data-view="documents">Upload History <span id="side-doc-count">0</span></button>
+      <button class="admin-nav-btn" data-view="hospitals">Hospitals &amp; Depts <span id="side-hosp-count">0</span></button>
+      <button class="admin-nav-btn" data-view="dept-requests">Dept Blood Requests <span id="side-dreq-count">0</span></button>
 
       <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px;">
         <a href="./reports.html" class="btn btn-ghost btn-sm" target="_blank">Public Reports ↗</a>
@@ -248,6 +250,238 @@
                 </tr>
               </thead>
               <tbody id="admin-docs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 6: Hospitals, Departments & Department Users -->
+      <section class="admin-view" id="view-hospitals">
+        <div class="kpi-strip" style="margin-bottom: 18px;">
+          <div class="kpi-card">
+            <div class="eyebrow-mono">REGISTERED HOSPITALS</div>
+            <div class="kpi-value" id="hosp-kpi-total">0</div>
+            <div class="eyebrow-mono">Multi-tenant organizations</div>
+          </div>
+          <div class="kpi-card">
+            <div class="eyebrow-mono">ACTIVE DEPARTMENTS</div>
+            <div class="kpi-value mint" id="hosp-kpi-depts">0</div>
+            <div class="eyebrow-mono">Across registered hospitals</div>
+          </div>
+          <div class="kpi-card">
+            <div class="eyebrow-mono">DEPARTMENT ACCOUNTS</div>
+            <div class="kpi-value" id="hosp-kpi-users">0</div>
+            <div class="eyebrow-mono">Invited &amp; active staff</div>
+          </div>
+          <div class="kpi-card">
+            <div class="eyebrow-mono">DEPT BLOOD ORDERS</div>
+            <div class="kpi-value red" id="hosp-kpi-reqs">0</div>
+            <div class="eyebrow-mono">Hospital portal requests</div>
+          </div>
+        </div>
+
+        <div class="grid-3" style="gap: 16px; margin-bottom: 18px; align-items: start;">
+          <!-- Form 1: Register Hospital -->
+          <form class="panel" id="adm-create-hospital-form">
+            <div class="panel-head">
+              <h2 class="panel-title">1. Register Hospital</h2>
+              <span class="eyebrow-mono">STEP 1</span>
+            </div>
+            <div class="field-group">
+              <label for="adm-hosp-name">Hospital Name *</label>
+              <input id="adm-hosp-name" type="text" class="field-input" placeholder="e.g., KEM Memorial Hospital" required />
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div class="field-group">
+                <label for="adm-hosp-code">Hospital ID / Code *</label>
+                <input id="adm-hosp-code" type="text" class="field-input" placeholder="e.g., HOSP-KEM-01" required />
+              </div>
+              <div class="field-group">
+                <label for="adm-hosp-city">City *</label>
+                <input id="adm-hosp-city" type="text" class="field-input" placeholder="Mumbai" required />
+              </div>
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div class="field-group">
+                <label for="adm-hosp-state">State</label>
+                <input id="adm-hosp-state" type="text" class="field-input" placeholder="Maharashtra" />
+              </div>
+              <div class="field-group">
+                <label for="adm-hosp-addr">Address</label>
+                <input id="adm-hosp-addr" type="text" class="field-input" placeholder="Parel East" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-red btn-sm" id="adm-create-hosp-btn">Register Hospital</button>
+          </form>
+
+          <!-- Form 2: Create Department -->
+          <form class="panel" id="adm-create-dept-form">
+            <div class="panel-head">
+              <h2 class="panel-title">2. Create Department</h2>
+              <span class="eyebrow-mono">STEP 2</span>
+            </div>
+            <div class="field-group">
+              <label for="adm-dept-hosp">Select Hospital *</label>
+              <select id="adm-dept-hosp" class="control-select" required></select>
+            </div>
+            <div class="field-group">
+              <label for="adm-dept-template">Department Type *</label>
+              <select id="adm-dept-template" class="control-select">
+                <option value="DEPT-EMG|Emergency Department">Emergency Department (DEPT-EMG)</option>
+                <option value="DEPT-ICU|Intensive Care Unit (ICU)">Intensive Care Unit (ICU) (DEPT-ICU)</option>
+                <option value="DEPT-BBK|Blood Bank Department">Blood Bank Department (DEPT-BBK)</option>
+                <option value="DEPT-SRG|Surgery Department">Surgery Department (DEPT-SRG)</option>
+                <option value="DEPT-ONC|Oncology Department">Oncology Department (DEPT-ONC)</option>
+                <option value="DEPT-MAT|Maternity Department">Maternity Department (DEPT-MAT)</option>
+                <option value="DEPT-MED|General Medicine">General Medicine (DEPT-MED)</option>
+                <option value="DEPT-ADM|Hospital Administration">Hospital Administration (DEPT-ADM)</option>
+                <option value="CUSTOM">Custom Department...</option>
+              </select>
+            </div>
+            <div class="grid-2" id="adm-dept-custom-fields" style="gap:8px; display:none;">
+              <div class="field-group">
+                <label for="adm-dept-custom-name">Custom Name</label>
+                <input id="adm-dept-custom-name" type="text" class="field-input" placeholder="Department Name" />
+              </div>
+              <div class="field-group">
+                <label for="adm-dept-custom-code">Custom Code</label>
+                <input id="adm-dept-custom-code" type="text" class="field-input" placeholder="DEPT-XYZ" />
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary btn-sm" style="flex:1;">Create Department</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="adm-provision-all-depts-btn" title="Creates all 8 official hospital departments at once">+ All 8 Depts</button>
+            </div>
+          </form>
+
+          <!-- Form 3: Invite Department User -->
+          <form class="panel" id="adm-invite-user-form">
+            <div class="panel-head">
+              <h2 class="panel-title">3. Invite Department User</h2>
+              <span class="eyebrow-mono">STEP 3</span>
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div class="field-group">
+                <label for="adm-inv-hosp">Hospital *</label>
+                <select id="adm-inv-hosp" class="control-select" required></select>
+              </div>
+              <div class="field-group">
+                <label for="adm-inv-dept">Department *</label>
+                <select id="adm-inv-dept" class="control-select" required></select>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="adm-inv-name">Staff / Doctor Full Name *</label>
+              <input id="adm-inv-name" type="text" class="field-input" placeholder="e.g., Dr. Kavita Rao" required />
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div class="field-group">
+                <label for="adm-inv-email">Official Email *</label>
+                <input id="adm-inv-email" type="email" class="field-input" placeholder="emg.lead@hospital.org" required />
+              </div>
+              <div class="field-group">
+                <label for="adm-inv-role">Department Role *</label>
+                <select id="adm-inv-role" class="control-select">
+                  <option value="department_staff">department_staff</option>
+                  <option value="department_head">department_head</option>
+                  <option value="blood_bank_officer">blood_bank_officer</option>
+                  <option value="hospital_admin">hospital_admin</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-red btn-sm" id="adm-invite-user-btn">Invite Department User</button>
+          </form>
+        </div>
+
+        <!-- Hospital Statistics Table -->
+        <div class="panel" style="margin-bottom: 18px;">
+          <div class="panel-head">
+            <h2 class="panel-title">Hospital Directory &amp; Statistics</h2>
+            <span class="eyebrow-mono">LIVE SUPABASE RECORDS</span>
+          </div>
+          <div class="table-wrap" style="max-height: 280px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Hospital ID</th>
+                  <th>Hospital Name</th>
+                  <th>City / State</th>
+                  <th>Departments</th>
+                  <th>Active Staff</th>
+                  <th>Total Requests</th>
+                </tr>
+              </thead>
+              <tbody id="adm-hospitals-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Department Users Access Control Table -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Department Users, Roles &amp; Access Control</h2>
+            <span class="eyebrow-mono">ACTIVATE / DEACTIVATE / RESET ACCESS</span>
+          </div>
+          <div class="table-wrap" style="max-height: 360px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Staff Member</th>
+                  <th>Hospital &amp; Department</th>
+                  <th>Auth Link</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adm-dept-users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 7: Hospital Department Blood Requests Monitor -->
+      <section class="admin-view" id="view-dept-requests">
+        <div class="cc-controls" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="adm-dreq-hosp-filter">Filter by Hospital</label>
+            <select id="adm-dreq-hosp-filter" class="control-select">
+              <option value="ALL">All Hospitals</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="adm-dreq-status-filter">Filter by Request Status</label>
+            <select id="adm-dreq-status-filter" class="control-select">
+              <option value="ALL">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Approved">Approved</option>
+              <option value="Fulfilled">Fulfilled</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Hospital Department Blood Requests (`department_blood_requests`)</h2>
+            <span class="eyebrow-mono">APPROVE / REVIEW / FULFILL / REJECT</span>
+          </div>
+          <div class="table-wrap" style="max-height: 540px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Hospital &amp; Dept</th>
+                  <th>Patient Ref</th>
+                  <th>Blood &amp; Units</th>
+                  <th>Urgency</th>
+                  <th>Required By</th>
+                  <th>Staff &amp; Notes</th>
+                  <th>Status</th>
+                  <th>Update Status</th>
+                </tr>
+              </thead>
+              <tbody id="adm-dept-requests-tbody"></tbody>
             </table>
           </div>
         </div>

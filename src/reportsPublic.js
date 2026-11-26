@@ -8,9 +8,17 @@
 
   let allPublished = [];
 
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
   function resolveCoverUrl(rep) {
     if (!rep.cover_image_path) return "./assets/images/lab-mumbai.jpg";
-    if (rep.cover_image_path.startsWith("http") || rep.cover_image_path.startsWith("./")) {
+    if (rep.cover_image_path.startsWith("https://") || rep.cover_image_path.startsWith("./")) {
       return rep.cover_image_path;
     }
     return "./assets/images/lab-mumbai.jpg";
@@ -60,7 +68,7 @@
     const coverEl = document.getElementById("pub-modal-cover");
     const imgUrl = resolveCoverUrl(rep);
     coverEl.innerHTML = imgUrl
-      ? `<img src="${imgUrl}" alt="${rep.title}" style="width:100%;max-height:240px;object-fit:cover;border-radius:10px;border:1px solid var(--line);" />`
+      ? `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(rep.title)}" style="width:100%;max-height:240px;object-fit:cover;border-radius:10px;border:1px solid var(--line);" />`
       : "";
 
     const actions = document.getElementById("pub-modal-actions");
@@ -87,16 +95,16 @@
       const imgUrl = resolveCoverUrl(rep);
       card.innerHTML = `
         <div class="report-cover">
-          <img src="${imgUrl}" alt="${rep.title}" />
+          <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(rep.title)}" />
         </div>
         <div class="report-card-body">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span class="badge badge-low">${rep.category}</span>
-            <span class="eyebrow-mono">${rep.report_date}</span>
+            <span class="badge badge-low">${escapeHtml(rep.category)}</span>
+            <span class="eyebrow-mono">${escapeHtml(rep.report_date)}</span>
           </div>
-          <h3 class="display-md" style="font-size:1.15rem;margin:2px 0;">${rep.title}</h3>
-          <p class="lead-lg" style="font-size:0.86rem;flex:1;">${rep.description}</p>
-          <div class="eyebrow-mono">${rep.region}${rep.blood_group && rep.blood_group !== "N/A" ? ` · Group ${rep.blood_group}` : ""}</div>
+          <h3 class="display-md" style="font-size:1.15rem;margin:2px 0;">${escapeHtml(rep.title)}</h3>
+          <p class="lead-lg" style="font-size:0.86rem;flex:1;">${escapeHtml(rep.description)}</p>
+          <div class="eyebrow-mono">${escapeHtml(rep.region)}${rep.blood_group && rep.blood_group !== "N/A" ? ` · Group ${escapeHtml(rep.blood_group)}` : ""}</div>
           <div class="cta-row" style="margin-top:6px;">
             <button class="btn btn-primary btn-sm view-rep-btn">View Report</button>
             <button class="btn btn-ghost btn-sm dl-rep-btn">Download Report</button>

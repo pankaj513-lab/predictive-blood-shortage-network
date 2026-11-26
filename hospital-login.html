@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Department Portal — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+</head>
+<body data-page="hospital">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>HOSPITAL DEPARTMENT PORTAL</span></div>
+        <h1 class="display-xl">Hospital Department Portal</h1>
+      </div>
+      <div>
+        <p class="lead-lg">
+          Secure access for hospital departments to manage blood requirements, monitor inventory, and coordinate emergency requests.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="container">
+      <div class="panel" id="supabase-config-err" style="display:none; border-color: var(--red); margin-bottom: 18px;">
+        <div class="eyebrow-mono" style="color: var(--red-bright);">SUPABASE CONFIG NOTICE</div>
+        <p class="lead-lg" id="supabase-config-err-msg" style="font-size: 0.9rem;">
+          Start the server with <code>start_pbsn.bat</code> (serving <code>.env</code> via <code>/api/config</code>).
+        </p>
+      </div>
+
+      <div class="grid-2" style="align-items: start; gap: 24px;">
+        <!-- Left Column: Hospital Department Auth Card -->
+        <div>
+          <div style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="portal-tabs" role="tablist" aria-label="Portal Authentication Mode">
+              <button type="button" class="portal-tab active" id="tab-signin" role="tab" aria-selected="true">Department Login</button>
+              <button type="button" class="portal-tab" id="tab-activate" role="tab" aria-selected="false">Activate Invited Account</button>
+            </div>
+            <span class="eyebrow-mono">SUPABASE AUTH · RLS ISOLATED</span>
+          </div>
+
+          <!-- Standard Department Login Form -->
+          <form class="panel" id="hospital-login-form" novalidate>
+            <div class="panel-head">
+              <h2 class="panel-title">Authorized Department Sign In</h2>
+              <span class="badge badge-critical">Multi-Tenant RLS</span>
+            </div>
+
+            <div class="grid-2" style="gap: 12px;">
+              <div class="field-group">
+                <label for="hosp-code">Hospital ID</label>
+                <input id="hosp-code" type="text" class="field-input" placeholder="e.g., HOSP-KEM-01" autocomplete="organization" required />
+              </div>
+              <div class="field-group">
+                <label for="dept-code">Department ID</label>
+                <input id="dept-code" type="text" class="field-input" list="dept-code-list" placeholder="e.g., DEPT-EMG" required />
+                <datalist id="dept-code-list">
+                  <option value="DEPT-EMG">Emergency Department</option>
+                  <option value="DEPT-ICU">Intensive Care Unit (ICU)</option>
+                  <option value="DEPT-BBK">Blood Bank Department</option>
+                  <option value="DEPT-SRG">Surgery Department</option>
+                  <option value="DEPT-ONC">Oncology Department</option>
+                  <option value="DEPT-MAT">Maternity Department</option>
+                  <option value="DEPT-MED">General Medicine</option>
+                  <option value="DEPT-ADM">Hospital Administration</option>
+                </datalist>
+              </div>
+            </div>
+
+            <div>
+              <span class="eyebrow-mono">Quick Department Code Reference:</span>
+              <div class="dept-code-chips" id="dept-preset-chips">
+                <button type="button" class="dept-chip-btn" data-code="DEPT-EMG">DEPT-EMG · Emergency</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-ICU">DEPT-ICU · ICU</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-BBK">DEPT-BBK · Blood Bank</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-SRG">DEPT-SRG · Surgery</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-ONC">DEPT-ONC · Oncology</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-MAT">DEPT-MAT · Maternity</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-MED">DEPT-MED · Medicine</button>
+                <button type="button" class="dept-chip-btn" data-code="DEPT-ADM">DEPT-ADM · Admin</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="hosp-email">Official Email</label>
+              <input id="hosp-email" type="email" class="field-input" autocomplete="username" placeholder="department.lead@hospital.org" required />
+            </div>
+
+            <div class="field-group">
+              <label for="hosp-pass">Password</label>
+              <div class="pwd-wrap">
+                <input id="hosp-pass" type="password" class="field-input" autocomplete="current-password" placeholder="Enter your department password" required />
+                <button type="button" class="pwd-toggle" id="toggle-login-pwd" aria-label="Show password">SHOW</button>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <label style="display:inline-flex; align-items:center; gap:8px; font-size:0.84rem; color:var(--text-secondary); cursor:pointer;">
+                <input id="hosp-remember" type="checkbox" checked />
+                <span>Remember my Hospital &amp; Department ID</span>
+              </label>
+              <button type="button" id="open-forgot-btn" class="btn btn-ghost btn-sm">Forgot Password?</button>
+            </div>
+
+            <div class="field-error" id="hosp-login-error" role="alert"></div>
+            <button type="submit" id="hosp-login-btn" class="btn btn-red" style="width: 100%;">Login to Department Dashboard</button>
+          </form>
+
+          <!-- First-Time Invite Activation Form (Only succeeds if pre-invited by PBSN Admin) -->
+          <form class="panel" id="hospital-activate-form" style="display:none;" novalidate>
+            <div class="panel-head">
+              <h2 class="panel-title">Activate Invited Department Account</h2>
+              <span class="badge badge-info">Admin Invite Required</span>
+            </div>
+            <p class="lead-lg" style="font-size: 0.85rem;">
+              If your PBSN administrator invited your official hospital email, set your department password below to bind your account via Supabase Auth.
+            </p>
+            <div class="grid-2" style="gap: 12px;">
+              <div class="field-group">
+                <label for="act-hosp-code">Assigned Hospital ID</label>
+                <input id="act-hosp-code" type="text" class="field-input" placeholder="e.g., HOSP-KEM-01" required />
+              </div>
+              <div class="field-group">
+                <label for="act-dept-code">Assigned Department ID</label>
+                <input id="act-dept-code" type="text" class="field-input" list="dept-code-list" placeholder="e.g., DEPT-EMG" required />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="act-email">Invited Official Email</label>
+              <input id="act-email" type="email" class="field-input" placeholder="invited.staff@hospital.org" required />
+            </div>
+            <div class="field-group">
+              <label for="act-pass">Create Password (min 8 characters)</label>
+              <div class="pwd-wrap">
+                <input id="act-pass" type="password" class="field-input" minlength="8" placeholder="Minimum 8 characters" required />
+                <button type="button" class="pwd-toggle" id="toggle-act-pwd" aria-label="Show password">SHOW</button>
+              </div>
+            </div>
+            <div class="field-error" id="hosp-activate-error" role="alert"></div>
+            <button type="submit" id="hosp-activate-btn" class="btn btn-primary" style="width: 100%;">Activate &amp; Open Department Dashboard</button>
+          </form>
+        </div>
+
+        <!-- Right Column: Security Architecture, Supported Departments, & Clearly Labelled Demo Preview -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">Authorized Hospital Departments</h2>
+              <span class="eyebrow-mono">8 CLINICAL UNITS</span>
+            </div>
+            <p class="lead-lg" style="font-size:0.86rem;">
+              Each department signs in independently with Supabase Auth and Postgres Row Level Security enforcing strict hospital and department isolation:
+            </p>
+            <div class="grid-2" style="gap:8px; font-size:0.82rem;">
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Emergency (DEPT-EMG)</strong><div style="color:var(--text-muted);">Critical emergency blood orders</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>ICU (DEPT-ICU)</strong><div style="color:var(--text-muted);">Scheduled &amp; urgent unit monitoring</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Blood Bank (DEPT-BBK)</strong><div style="color:var(--text-muted);">Inventory control &amp; triage</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Surgery (DEPT-SRG)</strong><div style="color:var(--text-muted);">Pre-surgery blood allocations</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Oncology (DEPT-ONC)</strong><div style="color:var(--text-muted);">Recurring transfusion schedules</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Maternity (DEPT-MAT)</strong><div style="color:var(--text-muted);">Obstetric &amp; standby requests</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>General Med (DEPT-MED)</strong><div style="color:var(--text-muted);">Ward blood requirements</div></div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;"><strong>Administration (DEPT-ADM)</strong><div style="color:var(--text-muted);">Hospital oversight &amp; staff</div></div>
+            </div>
+          </div>
+
+          <div class="panel" style="border-color: rgba(78, 168, 222, 0.35);">
+            <div class="panel-head">
+              <h2 class="panel-title">Setup &amp; Read-Only Demo Mode</h2>
+              <span class="demo-tag">No Fake Logins</span>
+            </div>
+            <p class="lead-lg" style="font-size:0.85rem;">
+              If your administrator has not registered your hospital or department user yet:
+            </p>
+            <ul style="margin:4px 0 10px 18px; font-size:0.83rem; color:var(--text-secondary); line-height:1.6;">
+              <li>Sign into the <a href="./admin-login.html" style="color:var(--blue);text-decoration:underline;">PBSN Admin Panel</a> to create a hospital, provision departments, and invite department staff.</li>
+              <li>Or preview the department workspace layout in read-only demo preview mode before live setup.</li>
+            </ul>
+            <a href="./hospital-dashboard.html?demo=1" class="btn btn-ghost btn-sm" style="align-self:flex-start;">Open Clearly Labelled Demo Preview →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal-backdrop" id="forgot-pwd-modal" role="dialog" aria-modal="true" aria-label="Reset Department Password">
+    <div class="modal-card" style="width: min(100%, 460px);">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow-mono">SUPABASE AUTH RECOVERY</div>
+          <h2 class="panel-title" style="margin-top:4px;">Reset Department Password</h2>
+        </div>
+        <button type="button" class="icon-btn" id="close-forgot-btn">✕</button>
+      </div>
+      <form id="forgot-pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+        <p class="lead-lg" style="font-size:0.84rem;">
+          Enter your registered official hospital email. Supabase Auth will send a password recovery link if SMTP is configured, or contact your PBSN Administrator to reset access.
+        </p>
+        <div class="field-group">
+          <label for="forgot-email">Official Hospital Email</label>
+          <input id="forgot-email" type="email" class="field-input" placeholder="department.lead@hospital.org" required />
+        </div>
+        <div class="field-error" id="forgot-error"></div>
+        <button type="submit" id="forgot-submit-btn" class="btn btn-red">Send Recovery Link</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Password Recovery Completion Modal (shown when returning with Supabase recovery link) -->
+  <div class="modal-backdrop" id="reset-pwd-modal" role="dialog" aria-modal="true" aria-label="Set New Password">
+    <div class="modal-card" style="width: min(100%, 460px);">
+      <div class="panel-head">
+        <h2 class="panel-title">Set New Department Password</h2>
+        <button type="button" class="icon-btn" id="close-reset-btn">✕</button>
+      </div>
+      <form id="reset-pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+        <div class="field-group">
+          <label for="new-recovery-pass">New Password (min 8 characters)</label>
+          <input id="new-recovery-pass" type="password" class="field-input" minlength="8" required />
+        </div>
+        <div class="field-error" id="reset-error"></div>
+        <button type="submit" id="reset-submit-btn" class="btn btn-red">Update Password</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      window.PBSN_CHROME.renderSharedChrome();
+
+      // Pre-fill remembered non-sensitive login fields (never password)
+      const remembered = window.PBSN_SVC.getRememberedDepartmentFields();
+      if (remembered) {
+        if (remembered.hospitalCode) document.getElementById("hosp-code").value = remembered.hospitalCode;
+        if (remembered.departmentCode) document.getElementById("dept-code").value = remembered.departmentCode;
+        if (remembered.email) document.getElementById("hosp-email").value = remembered.email;
+      }
+
+      // Show/Hide Password Toggles
+      function bindPwdToggle(btnId, inputId) {
+        const btn = document.getElementById(btnId);
+        const inp = document.getElementById(inputId);
+        btn.addEventListener("click", () => {
+          const isPwd = inp.type === "password";
+          inp.type = isPwd ? "text" : "password";
+          btn.textContent = isPwd ? "HIDE" : "SHOW";
+          btn.setAttribute("aria-label", isPwd ? "Hide password" : "Show password");
+        });
+      }
+      bindPwdToggle("toggle-login-pwd", "hosp-pass");
+      bindPwdToggle("toggle-act-pwd", "act-pass");
+
+      // Preset department chips fill active form's department code
+      let activeTab = "signin";
+      document.getElementById("dept-preset-chips").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-code]");
+        if (!chip) return;
+        const code = chip.dataset.code;
+        document.getElementById(activeTab === "signin" ? "dept-code" : "act-dept-code").value = code;
+      });
+
+      // Tabs: Sign In vs Activate Invited Account
+      const tabSignin = document.getElementById("tab-signin");
+      const tabActivate = document.getElementById("tab-activate");
+      const loginForm = document.getElementById("hospital-login-form");
+      const activateForm = document.getElementById("hospital-activate-form");
+
+      function switchTab(mode) {
+        activeTab = mode;
+        const isSign = mode === "signin";
+        tabSignin.classList.toggle("active", isSign);
+        tabActivate.classList.toggle("active", !isSign);
+        tabSignin.setAttribute("aria-selected", String(isSign));
+        tabActivate.setAttribute("aria-selected", String(!isSign));
+        loginForm.style.display = isSign ? "flex" : "none";
+        activateForm.style.display = isSign ? "none" : "flex";
+      }
+      tabSignin.addEventListener("click", () => switchTab("signin"));
+      tabActivate.addEventListener("click", () => switchTab("activate"));
+
+      // Handle Supabase recovery callback or existing active department session
+      try {
+        const sbClient = await window.PBSN_SUPABASE.getSupabase();
+        sbClient.auth.onAuthStateChange((event) => {
+          if (event === "PASSWORD_RECOVERY") {
+            document.getElementById("reset-pwd-modal").classList.add("open");
+          }
+        });
+        if (!window.location.hash.includes("type=recovery")) {
+          const existing = await window.PBSN_SVC.getDepartmentSession();
+          if (existing) {
+            window.location.href = "./hospital-dashboard.html";
+            return;
+          }
+        }
+      } catch (err) {
+        document.getElementById("supabase-config-err").style.display = "flex";
+        document.getElementById("supabase-config-err-msg").textContent = err.message;
+      }
+
+      // Sign In Submission
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("hosp-login-error");
+        const btn = document.getElementById("hosp-login-btn");
+        const hospitalCode = document.getElementById("hosp-code").value.trim().toUpperCase();
+        const departmentCode = document.getElementById("dept-code").value.trim().toUpperCase();
+        const email = document.getElementById("hosp-email").value.trim();
+        const password = document.getElementById("hosp-pass").value;
+        const rememberMe = document.getElementById("hosp-remember").checked;
+
+        if (!hospitalCode || !departmentCode || !email.includes("@") || !password) {
+          errEl.textContent = "Hospital ID, Department ID, official email, and password are all required.";
+          window.PBSN_CHROME.showToast("Please complete all department login fields.", "error");
+          return;
+        }
+
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Verifying Department Credentials...";
+
+        try {
+          await window.PBSN_SVC.signInDepartmentUser({
+            hospitalCode,
+            departmentCode,
+            email,
+            password,
+            rememberMe
+          });
+          window.PBSN_CHROME.showToast("Hospital department authenticated.", "success");
+          window.location.href = "./hospital-dashboard.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Authentication failed.";
+          window.PBSN_CHROME.showToast(err.message || "Department login failed.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Login to Department Dashboard";
+        }
+      });
+
+      // Activate Invited Account Submission
+      activateForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("hosp-activate-error");
+        const btn = document.getElementById("hosp-activate-btn");
+        const hospitalCode = document.getElementById("act-hosp-code").value.trim().toUpperCase();
+        const departmentCode = document.getElementById("act-dept-code").value.trim().toUpperCase();
+        const email = document.getElementById("act-email").value.trim();
+        const password = document.getElementById("act-pass").value;
+
+        if (!hospitalCode || !departmentCode || !email.includes("@") || password.length < 8) {
+          errEl.textContent = "Enter Hospital ID, Department ID, invited email, and password (min 8 chars).";
+          return;
+        }
+
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Activating Department Access...";
+
+        try {
+          await window.PBSN_SVC.activateDepartmentInvite({
+            hospitalCode,
+            departmentCode,
+            email,
+            password
+          });
+          window.PBSN_CHROME.showToast("Account activated & linked cleanly.", "success");
+          window.location.href = "./hospital-dashboard.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Activation failed.";
+          document.getElementById("hosp-code").value = hospitalCode;
+          document.getElementById("dept-code").value = departmentCode;
+          document.getElementById("hosp-email").value = email.toLowerCase();
+          window.PBSN_CHROME.showToast(err.message || "Activation failed.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Activate & Open Department Dashboard";
+        }
+      });
+
+      // Forgot Password Modal
+      const forgotModal = document.getElementById("forgot-pwd-modal");
+      document.getElementById("open-forgot-btn").addEventListener("click", () => {
+        const curEmail = document.getElementById("hosp-email").value.trim();
+        if (curEmail) document.getElementById("forgot-email").value = curEmail;
+        forgotModal.classList.add("open");
+      });
+      document.getElementById("close-forgot-btn").addEventListener("click", () => forgotModal.classList.remove("open"));
+      forgotModal.addEventListener("click", (e) => {
+        if (e.target === forgotModal) forgotModal.classList.remove("open");
+      });
+
+      document.getElementById("forgot-pwd-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("forgot-error");
+        const btn = document.getElementById("forgot-submit-btn");
+        const email = document.getElementById("forgot-email").value.trim();
+        if (!email.includes("@")) {
+          errEl.textContent = "Enter a valid official email address.";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        try {
+          await window.PBSN_SVC.requestDepartmentPasswordReset(email);
+          forgotModal.classList.remove("open");
+          window.PBSN_CHROME.showToast("Recovery link sent if the account is enabled.", "success");
+        } catch (err) {
+          errEl.textContent = err.message || "Could not send recovery email.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Send Recovery Link";
+        }
+      });
+
+      // Recovery Password Update
+      const resetModal = document.getElementById("reset-pwd-modal");
+      document.getElementById("close-reset-btn").addEventListener("click", () => resetModal.classList.remove("open"));
+      document.getElementById("reset-pwd-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("reset-error");
+        const pass = document.getElementById("new-recovery-pass").value;
+        if (pass.length < 8) {
+          errEl.textContent = "Password must be at least 8 characters.";
+          return;
+        }
+        try {
+          await window.PBSN_SVC.updateDepartmentPassword(pass);
+          resetModal.classList.remove("open");
+          window.PBSN_CHROME.showToast("Password updated. You can now sign in.", "success");
+        } catch (err) {
+          errEl.textContent = err.message || "Password update failed.";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

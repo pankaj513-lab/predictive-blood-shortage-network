@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In &amp; Create Account — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+</head>
+<body data-page="auth">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>USER ACCOUNT PORTAL</span></div>
+        <h1 class="display-xl">Welcome to PBSN Account Portal</h1>
+      </div>
+      <div>
+        <p class="lead-lg">
+          Sign in with Google or email &amp; password to access your persistent PBSN profile, coordinate blood network inquiries, and manage your account security.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="container">
+      <div class="panel" id="supabase-config-err" style="display:none; border-color: var(--red); margin-bottom: 18px;">
+        <div class="eyebrow-mono" style="color: var(--red-bright);">SUPABASE CONFIG NOTICE</div>
+        <p class="lead-lg" id="supabase-config-err-msg" style="font-size: 0.9rem;">
+          Start the server with <code>start_pbsn.bat</code> (serving <code>.env</code> via <code>/api/config</code>).
+        </p>
+      </div>
+
+      <div class="grid-2" style="align-items: start; gap: 24px;">
+        <!-- Auth Card: Tabs + Google OAuth + Email Login / Sign-Up -->
+        <div class="panel" style="gap: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="portal-tabs" role="tablist" aria-label="Authentication Mode">
+              <button type="button" class="portal-tab active" id="auth-tab-login" role="tab" aria-selected="true">Login</button>
+              <button type="button" class="portal-tab" id="auth-tab-signup" role="tab" aria-selected="false">Sign Up</button>
+            </div>
+            <span class="eyebrow-mono">SUPABASE AUTH · OAUTH 2.0</span>
+          </div>
+
+          <!-- Option 1: Continue with Google -->
+          <div>
+            <button type="button" class="google-btn" id="google-signin-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+                <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+              </svg>
+              <span id="google-btn-label">Continue with Google</span>
+            </button>
+            <div class="field-error" id="google-auth-error" role="alert" style="margin-top:6px;"></div>
+          </div>
+
+          <div class="auth-divider">or continue with email</div>
+
+          <!-- Success / Verification Notice Banner -->
+          <div class="auth-status-box" id="auth-success-box" style="display:none;" role="status"></div>
+
+          <!-- Option 2: Sign in with Email -->
+          <form id="user-login-form" style="display:flex; flex-direction:column; gap:12px;" novalidate>
+            <div class="field-group">
+              <label for="login-email">Email Address</label>
+              <input id="login-email" type="email" class="field-input" autocomplete="email" placeholder="you@example.com" required />
+            </div>
+
+            <div class="field-group">
+              <label for="login-pass">Password</label>
+              <div class="pwd-wrap">
+                <input id="login-pass" type="password" class="field-input" autocomplete="current-password" placeholder="Enter your password" required />
+                <button type="button" class="pwd-toggle" id="toggle-user-login-pwd" aria-label="Show password">SHOW</button>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="button" id="user-forgot-btn" class="btn btn-ghost btn-sm">Forgot Password?</button>
+            </div>
+
+            <div class="field-error" id="user-login-error" role="alert"></div>
+            <button type="submit" id="user-login-btn" class="btn btn-red" style="width:100%;">
+              <span id="user-login-btn-text">Sign In with Email</span>
+            </button>
+          </form>
+
+          <!-- Sign-Up / Create Account Form -->
+          <form id="user-signup-form" style="display:none; flex-direction:column; gap:12px;" novalidate>
+            <div class="field-group">
+              <label for="signup-name">Full Name</label>
+              <input id="signup-name" type="text" class="field-input" autocomplete="name" placeholder="e.g., Aarav Sharma" required />
+            </div>
+
+            <div class="field-group">
+              <label for="signup-email">Email Address</label>
+              <input id="signup-email" type="email" class="field-input" autocomplete="email" placeholder="you@example.com" required />
+            </div>
+
+            <div class="field-group">
+              <label for="signup-pass">Password</label>
+              <div class="pwd-wrap">
+                <input id="signup-pass" type="password" class="field-input" autocomplete="new-password" placeholder="Minimum 8 characters with letters &amp; numbers" required />
+                <button type="button" class="pwd-toggle" id="toggle-user-signup-pwd" aria-label="Show password">SHOW</button>
+              </div>
+              <div class="pwd-strength-track">
+                <div class="pwd-strength-fill" id="pwd-strength-fill"></div>
+              </div>
+              <div class="pwd-strength-meta">
+                <span id="pwd-strength-label">Password strength: —</span>
+                <span id="pwd-strength-hint">Use 8+ chars, upper, number &amp; symbol</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="signup-confirm">Confirm Password</label>
+              <div class="pwd-wrap">
+                <input id="signup-confirm" type="password" class="field-input" autocomplete="new-password" placeholder="Re-enter your password" required />
+                <button type="button" class="pwd-toggle" id="toggle-user-confirm-pwd" aria-label="Show confirm password">SHOW</button>
+              </div>
+            </div>
+
+            <div class="field-error" id="user-signup-error" role="alert"></div>
+            <button type="submit" id="user-signup-btn" class="btn btn-red" style="width:100%;">
+              <span id="user-signup-btn-text">Create Account</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Info Panel: Security & OAuth Setup Status -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">Security &amp; Session Architecture</h2>
+              <span class="badge badge-low">Supabase Auth</span>
+            </div>
+            <ul style="margin:4px 0 0 18px; font-size:0.86rem; color:var(--text-secondary); line-height:1.7;">
+              <li><strong>Google OAuth 2.0:</strong> Secure federated login retrieving your name, email, and avatar URL with consent.</li>
+              <li><strong>Encrypted Passwords:</strong> Zero plain-text passwords stored in PostgreSQL; hashed and verified exclusively by Supabase Auth.</li>
+              <li><strong>Persistent Profile Sync:</strong> Your profile in <code>public.user_profiles</code> is protected by per-user Row Level Security (<code>auth.uid() = id</code>).</li>
+              <li><strong>Email Verification &amp; Recovery:</strong> Supports verification links and email-based password reset.</li>
+            </ul>
+          </div>
+
+          <div class="panel" style="border-color: rgba(78, 168, 222, 0.35);">
+            <div class="panel-head">
+              <h2 class="panel-title">OAuth Provider Status</h2>
+              <span class="badge badge-info" id="oauth-provider-badge">Checking...</span>
+            </div>
+            <p class="lead-lg" id="oauth-provider-note" style="font-size:0.84rem;">
+              Inspecting active Supabase Auth provider configuration...
+            </p>
+            <div class="cta-row" style="margin-top:6px;">
+              <a href="./hospital-login.html" class="btn btn-ghost btn-sm">Hospital Department Login →</a>
+              <a href="./admin-login.html" class="btn btn-ghost btn-sm">Admin Portal →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal-backdrop" id="user-forgot-modal" role="dialog" aria-modal="true" aria-label="Reset Account Password">
+    <div class="modal-card" style="width:min(100%, 460px);">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow-mono">EMAIL RECOVERY</div>
+          <h2 class="panel-title" style="margin-top:4px;">Forgot Your Password?</h2>
+        </div>
+        <button type="button" class="icon-btn" id="close-user-forgot-btn">✕</button>
+      </div>
+      <form id="user-forgot-form" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+        <p class="lead-lg" style="font-size:0.84rem;">
+          Enter your registered email address and we will send a Supabase Auth password reset link.
+        </p>
+        <div class="field-group">
+          <label for="user-forgot-email">Email Address</label>
+          <input id="user-forgot-email" type="email" class="field-input" placeholder="you@example.com" required />
+        </div>
+        <div class="field-error" id="user-forgot-error" role="alert"></div>
+        <button type="submit" id="user-forgot-submit-btn" class="btn btn-red">Send Password Reset Email</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Password Recovery Update Modal -->
+  <div class="modal-backdrop" id="user-reset-modal" role="dialog" aria-modal="true" aria-label="Set New Password">
+    <div class="modal-card" style="width:min(100%, 460px);">
+      <div class="panel-head">
+        <h2 class="panel-title">Create New Password</h2>
+        <button type="button" class="icon-btn" id="close-user-reset-btn">✕</button>
+      </div>
+      <form id="user-reset-form" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+        <div class="field-group">
+          <label for="user-new-pass">New Password (min 8 chars)</label>
+          <input id="user-new-pass" type="password" class="field-input" minlength="8" required />
+        </div>
+        <div class="field-group">
+          <label for="user-new-pass-confirm">Confirm New Password</label>
+          <input id="user-new-pass-confirm" type="password" class="field-input" minlength="8" required />
+        </div>
+        <div class="field-error" id="user-reset-error" role="alert"></div>
+        <button type="submit" id="user-reset-submit-btn" class="btn btn-red">Save New Password</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      window.PBSN_CHROME.renderSharedChrome();
+
+      const tabLogin = document.getElementById("auth-tab-login");
+      const tabSignup = document.getElementById("auth-tab-signup");
+      const loginForm = document.getElementById("user-login-form");
+      const signupForm = document.getElementById("user-signup-form");
+      const successBox = document.getElementById("auth-success-box");
+
+      function switchAuthTab(mode) {
+        const isLogin = mode === "login";
+        tabLogin.classList.toggle("active", isLogin);
+        tabSignup.classList.toggle("active", !isLogin);
+        tabLogin.setAttribute("aria-selected", String(isLogin));
+        tabSignup.setAttribute("aria-selected", String(!isLogin));
+        loginForm.style.display = isLogin ? "flex" : "none";
+        signupForm.style.display = isLogin ? "none" : "flex";
+        successBox.style.display = "none";
+      }
+      tabLogin.addEventListener("click", () => switchAuthTab("login"));
+      tabSignup.addEventListener("click", () => switchAuthTab("signup"));
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("tab") === "signup") switchAuthTab("signup");
+
+      // Show/Hide password toggles
+      function bindPwdToggle(btnId, inputId) {
+        const btn = document.getElementById(btnId);
+        const inp = document.getElementById(inputId);
+        btn.addEventListener("click", () => {
+          const isPwd = inp.type === "password";
+          inp.type = isPwd ? "text" : "password";
+          btn.textContent = isPwd ? "HIDE" : "SHOW";
+          btn.setAttribute("aria-label", isPwd ? "Hide password" : "Show password");
+        });
+      }
+      bindPwdToggle("toggle-user-login-pwd", "login-pass");
+      bindPwdToggle("toggle-user-signup-pwd", "signup-pass");
+      bindPwdToggle("toggle-user-confirm-pwd", "signup-confirm");
+
+      // Password Strength Evaluation
+      function evaluatePasswordStrength(pw) {
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (pw.length >= 12) score++;
+        if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        if (score <= 1) return { score, pct: 25, label: "Weak", color: "var(--red)" };
+        if (score === 2) return { score, pct: 50, label: "Fair", color: "var(--amber)" };
+        if (score === 3 || score === 4) return { score, pct: 78, label: "Good", color: "var(--blue)" };
+        return { score, pct: 100, label: "Strong", color: "var(--mint)" };
+      }
+
+      document.getElementById("signup-pass").addEventListener("input", (e) => {
+        const pw = e.target.value;
+        const fill = document.getElementById("pwd-strength-fill");
+        const label = document.getElementById("pwd-strength-label");
+        if (!pw) {
+          fill.style.width = "0%";
+          label.textContent = "Password strength: —";
+          return;
+        }
+        const res = evaluatePasswordStrength(pw);
+        fill.style.width = `${res.pct}%`;
+        fill.style.background = res.color;
+        label.textContent = `Password strength: ${res.label}`;
+      });
+
+      function setButtonLoading(btn, labelEl, isLoading, loadingText, idleText) {
+        btn.disabled = isLoading;
+        labelEl.innerHTML = isLoading ? `<span class="btn-spinner"></span> ${loadingText}` : idleText;
+      }
+
+      // Check Supabase session + Auth provider readiness
+      try {
+        const client = await window.PBSN_SUPABASE.getSupabase();
+        client.auth.onAuthStateChange((event) => {
+          if (event === "PASSWORD_RECOVERY") {
+            document.getElementById("user-reset-modal").classList.add("open");
+          }
+        });
+
+        if (urlParams.get("mode") !== "reset" && !window.location.hash.includes("type=recovery")) {
+          const existing = await window.PBSN_SVC.getUserSessionProfile();
+          if (existing) {
+            window.location.href = "./user-dashboard.html";
+            return;
+          }
+        }
+
+        const settings = await window.PBSN_SVC.getAuthProviderSettings();
+        const badge = document.getElementById("oauth-provider-badge");
+        const note = document.getElementById("oauth-provider-note");
+        if (settings && settings.external) {
+          const googleOn = Boolean(settings.external.google);
+          badge.textContent = googleOn ? "Google + Email Active" : "Email Active · Google Setup Pending";
+          badge.className = `badge ${googleOn ? "badge-low" : "badge-med"}`;
+          note.textContent = googleOn
+            ? "Both Google OAuth 2.0 and Email/Password authentication are active on Supabase."
+            : "Email & Password auth is active. To activate Google OAuth, add your Google Cloud Client ID & Secret in Supabase Dashboard → Authentication → Providers → Google.";
+        }
+      } catch (err) {
+        document.getElementById("supabase-config-err").style.display = "flex";
+        document.getElementById("supabase-config-err-msg").textContent = err.message;
+      }
+
+      // Option 1: Continue with Google
+      const googleBtn = document.getElementById("google-signin-btn");
+      const googleLabel = document.getElementById("google-btn-label");
+      googleBtn.addEventListener("click", async () => {
+        const errEl = document.getElementById("google-auth-error");
+        errEl.textContent = "";
+        setButtonLoading(googleBtn, googleLabel, true, "Connecting to Google OAuth...", "Continue with Google");
+        try {
+          await window.PBSN_SVC.signInWithGoogle();
+        } catch (err) {
+          errEl.textContent = err.message || "Google OAuth failed.";
+          window.PBSN_CHROME.showToast(err.message || "Google sign-in failed.", "error");
+          setButtonLoading(googleBtn, googleLabel, false, "", "Continue with Google");
+        }
+      });
+
+      // Option 2: Sign in with Email
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("user-login-error");
+        const btn = document.getElementById("user-login-btn");
+        const txt = document.getElementById("user-login-btn-text");
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-pass").value;
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errEl.textContent = "Please enter a valid email address.";
+          return;
+        }
+        if (!password) {
+          errEl.textContent = "Please enter your password.";
+          return;
+        }
+
+        errEl.textContent = "";
+        successBox.style.display = "none";
+        setButtonLoading(btn, txt, true, "Signing in...", "Sign In with Email");
+
+        try {
+          await window.PBSN_SVC.signInUser({ email, password });
+          window.PBSN_CHROME.showToast("Signed in successfully!", "success");
+          window.location.href = "./user-dashboard.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Invalid email or password.";
+          window.PBSN_CHROME.showToast(err.message || "Sign-in failed.", "error");
+        } finally {
+          setButtonLoading(btn, txt, false, "", "Sign In with Email");
+        }
+      });
+
+      // Sign-Up / Create Account
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("user-signup-error");
+        const btn = document.getElementById("user-signup-btn");
+        const txt = document.getElementById("user-signup-btn-text");
+        const fullName = document.getElementById("signup-name").value.trim();
+        const email = document.getElementById("signup-email").value.trim();
+        const password = document.getElementById("signup-pass").value;
+        const confirm = document.getElementById("signup-confirm").value;
+
+        if (fullName.length < 2) {
+          errEl.textContent = "Please enter your full name (at least 2 characters).";
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errEl.textContent = "Please enter a valid email address.";
+          return;
+        }
+        const strength = evaluatePasswordStrength(password);
+        if (password.length < 8 || strength.score < 2) {
+          errEl.textContent = "Password is too weak. Use at least 8 characters including letters and numbers.";
+          return;
+        }
+        if (password !== confirm) {
+          errEl.textContent = "Passwords do not match.";
+          return;
+        }
+
+        errEl.textContent = "";
+        successBox.style.display = "none";
+        setButtonLoading(btn, txt, true, "Creating account...", "Create Account");
+
+        try {
+          const res = await window.PBSN_SVC.signUpUser({ fullName, email, password });
+          if (res.needsVerification) {
+            successBox.style.display = "block";
+            successBox.textContent = `Account created for ${email}! Please check your inbox and verify your email address before signing in.`;
+            document.getElementById("login-email").value = email.toLowerCase();
+            window.PBSN_CHROME.showToast("Verification email sent!", "success");
+            signupForm.reset();
+          } else {
+            window.PBSN_CHROME.showToast("Account created! Redirecting to dashboard...", "success");
+            window.location.href = "./user-dashboard.html";
+          }
+        } catch (err) {
+          errEl.textContent = err.message || "Unable to create account.";
+          window.PBSN_CHROME.showToast(err.message || "Registration failed.", "error");
+        } finally {
+          setButtonLoading(btn, txt, false, "", "Create Account");
+        }
+      });
+
+      // Forgot Password Modal
+      const forgotModal = document.getElementById("user-forgot-modal");
+      document.getElementById("user-forgot-btn").addEventListener("click", () => {
+        const curEmail = document.getElementById("login-email").value.trim();
+        if (curEmail) document.getElementById("user-forgot-email").value = curEmail;
+        forgotModal.classList.add("open");
+      });
+      document.getElementById("close-user-forgot-btn").addEventListener("click", () => forgotModal.classList.remove("open"));
+      forgotModal.addEventListener("click", (e) => {
+        if (e.target === forgotModal) forgotModal.classList.remove("open");
+      });
+
+      document.getElementById("user-forgot-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("user-forgot-error");
+        const btn = document.getElementById("user-forgot-submit-btn");
+        const email = document.getElementById("user-forgot-email").value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errEl.textContent = "Enter a valid email address.";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        try {
+          await window.PBSN_SVC.requestUserPasswordReset(email);
+          forgotModal.classList.remove("open");
+          successBox.style.display = "block";
+          successBox.textContent = `Password reset instructions sent to ${email} (if registered).`;
+          window.PBSN_CHROME.showToast("Password reset link dispatched.", "success");
+        } catch (err) {
+          errEl.textContent = err.message || "Failed to send reset link.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Send Password Reset Email";
+        }
+      });
+
+      // Password Recovery Modal
+      const resetModal = document.getElementById("user-reset-modal");
+      document.getElementById("close-user-reset-btn").addEventListener("click", () => resetModal.classList.remove("open"));
+      document.getElementById("user-reset-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("user-reset-error");
+        const p1 = document.getElementById("user-new-pass").value;
+        const p2 = document.getElementById("user-new-pass-confirm").value;
+        if (p1.length < 8 || p1 !== p2) {
+          errEl.textContent = "Passwords must match and be at least 8 characters.";
+          return;
+        }
+        try {
+          await window.PBSN_SVC.updateUserPassword(p1);
+          resetModal.classList.remove("open");
+          window.PBSN_CHROME.showToast("Password updated cleanly! Redirecting...", "success");
+          window.location.href = "./user-dashboard.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Could not update password.";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

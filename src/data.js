@@ -28,7 +28,31 @@
     "Hyderabad",
     "Pune",
     "Kolkata",
-    "Ahmedabad"
+    "Ahmedabad",
+    "Ranchi",
+    "Jamshedpur (East Singhbhum)",
+    "Dhanbad",
+    "Bokaro",
+    "Deoghar",
+    "Hazaribagh",
+    "Medininagar (Palamu)",
+    "Dumka",
+    "Seraikela Kharsawan",
+    "Giridih",
+    "Garhwa",
+    "Latehar",
+    "Chatra",
+    "Koderma",
+    "Ramgarh",
+    "Gumla",
+    "Simdega",
+    "Lohardaga",
+    "Khunti",
+    "Chaibasa (West Singhbhum)",
+    "Godda",
+    "Sahibganj",
+    "Pakur",
+    "Jamtara"
   ];
 
   // Real major hospital names & cities with exact lat/lng for Leaflet map integration
@@ -211,6 +235,85 @@
       }
     }
   ];
+
+  // Add all 24 Districts of Jharkhand and their major District / Medical College Hospitals
+  function makeJharkhandInventory(tier, seed) {
+    const mult = tier === "medical" ? 1.55 : 0.72;
+    const lowMode = seed % 4 === 1;
+    const base = {
+      "A+": [52, 5.2, 8],
+      "A-": [12, 1.4, 2],
+      "B+": [64, 6.1, 10],
+      "B-": [10, 1.3, 2],
+      "AB+": [24, 2.1, 4],
+      "AB-": [7, 0.8, 1],
+      "O+": [78, 7.2, 12],
+      "O-": [lowMode ? 5 : 14, lowMode ? 2.6 : 1.7, 2]
+    };
+    const inv = {};
+    BLOOD_GROUPS.forEach((g) => {
+      const [u, d, e] = base[g];
+      inv[g] = {
+        units: Math.max(3, Math.round(u * mult * (lowMode && g === "O-" ? 0.65 : 1))),
+        dailyUse: Math.round(d * mult * 10) / 10,
+        expiring5d: Math.max(1, Math.round(e * mult))
+      };
+    });
+    return inv;
+  }
+
+  const JHARKHAND_HOSPITALS = [
+    { id: "jh-rnc-rims", name: "RIMS Blood Bank & Tertiary Hospital", city: "Ranchi", role: "Apex Medical College (Jharkhand)", lat: 23.3905, lng: 85.3490, tier: "medical" },
+    { id: "jh-rnc-sadar", name: "Sadar Hospital, Ranchi", city: "Ranchi", role: "District Hospital (Ranchi)", lat: 23.3728, lng: 85.3315, tier: "district" },
+    { id: "jh-jam-mgm", name: "MGM Medical College & Hospital", city: "Jamshedpur (East Singhbhum)", role: "Govt Medical College (East Singhbhum)", lat: 22.8046, lng: 86.2029, tier: "medical" },
+    { id: "jh-jam-tmh", name: "Tata Main Hospital (TMH) Blood Centre", city: "Jamshedpur (East Singhbhum)", role: "Multi-Specialty Referral (East Singhbhum)", lat: 22.7925, lng: 86.1842, tier: "medical" },
+    { id: "jh-jam-sadar", name: "Sadar Hospital, Khasmahal (Jamshedpur)", city: "Jamshedpur (East Singhbhum)", role: "District Hospital (East Singhbhum)", lat: 22.7685, lng: 86.2045, tier: "district" },
+    { id: "jh-dhn-snmmch", name: "SNMMCH Medical College & Hospital", city: "Dhanbad", role: "Govt Medical College (Dhanbad)", lat: 23.8163, lng: 86.4494, tier: "medical" },
+    { id: "jh-dhn-sadar", name: "Sadar Hospital, Dhanbad", city: "Dhanbad", role: "District Hospital (Dhanbad)", lat: 23.7995, lng: 86.4304, tier: "district" },
+    { id: "jh-bok-bgh", name: "Bokaro General Hospital (SAIL)", city: "Bokaro", role: "Tertiary Steel Plant Hub (Bokaro)", lat: 23.6693, lng: 86.1511, tier: "medical" },
+    { id: "jh-bok-sadar", name: "Sadar Hospital, Bokaro (Chas)", city: "Bokaro", role: "District Hospital (Bokaro)", lat: 23.6362, lng: 86.1712, tier: "district" },
+    { id: "jh-dgh-aiims", name: "AIIMS Deoghar Blood Centre", city: "Deoghar", role: "Apex Central Institute (Deoghar)", lat: 24.4447, lng: 86.6435, tier: "medical" },
+    { id: "jh-dgh-sadar", name: "Sadar Hospital, Deoghar", city: "Deoghar", role: "District Hospital (Deoghar)", lat: 24.4828, lng: 86.6958, tier: "district" },
+    { id: "jh-hzb-sbmch", name: "Sheikh Bhikhari Medical College Hospital", city: "Hazaribagh", role: "Govt Medical College (Hazaribagh)", lat: 23.9925, lng: 85.3637, tier: "medical" },
+    { id: "jh-hzb-sadar", name: "Sadar Hospital, Hazaribagh", city: "Hazaribagh", role: "District Hospital (Hazaribagh)", lat: 23.9966, lng: 85.3690, tier: "district" },
+    { id: "jh-plm-mmch", name: "Medinirai Medical College & Hospital", city: "Medininagar (Palamu)", role: "Govt Medical College (Palamu)", lat: 24.0419, lng: 84.0725, tier: "medical" },
+    { id: "jh-plm-sadar", name: "Sadar Hospital, Medininagar", city: "Medininagar (Palamu)", role: "District Hospital (Palamu)", lat: 24.0358, lng: 84.0665, tier: "district" },
+    { id: "jh-dmk-pjmch", name: "Phulo Jhano Medical College Hospital", city: "Dumka", role: "Govt Medical College (Dumka)", lat: 24.2815, lng: 87.2580, tier: "medical" },
+    { id: "jh-dmk-sadar", name: "Sadar Hospital, Dumka", city: "Dumka", role: "District Hospital (Dumka)", lat: 24.2679, lng: 87.2485, tier: "district" },
+    { id: "jh-skl-nsmch", name: "Netaji Subhas Medical College & Hospital", city: "Seraikela Kharsawan", role: "Medical College (Adityapur)", lat: 22.7870, lng: 86.1430, tier: "medical" },
+    { id: "jh-skl-sadar", name: "Sadar Hospital, Seraikela", city: "Seraikela Kharsawan", role: "District Hospital (Seraikela Kharsawan)", lat: 22.7000, lng: 85.9500, tier: "district" },
+    { id: "jh-grd-sadar", name: "Sadar Hospital, Giridih", city: "Giridih", role: "District Hospital (Giridih)", lat: 24.1854, lng: 86.3054, tier: "district" },
+    { id: "jh-grw-sadar", name: "Sadar Hospital, Garhwa", city: "Garhwa", role: "District Hospital (Garhwa)", lat: 24.1604, lng: 83.8058, tier: "district" },
+    { id: "jh-lth-sadar", name: "Sadar Hospital, Latehar", city: "Latehar", role: "District Hospital (Latehar)", lat: 23.7441, lng: 84.4998, tier: "district" },
+    { id: "jh-cht-sadar", name: "Sadar Hospital, Chatra", city: "Chatra", role: "District Hospital (Chatra)", lat: 24.2055, lng: 84.8706, tier: "district" },
+    { id: "jh-kdm-sadar", name: "Sadar Hospital, Koderma", city: "Koderma", role: "District Hospital (Koderma)", lat: 24.4676, lng: 85.5936, tier: "district" },
+    { id: "jh-rmg-sadar", name: "Sadar Hospital, Ramgarh", city: "Ramgarh", role: "District Hospital (Ramgarh)", lat: 23.6302, lng: 85.5194, tier: "district" },
+    { id: "jh-gml-sadar", name: "Sadar Hospital, Gumla", city: "Gumla", role: "District Hospital (Gumla)", lat: 23.0442, lng: 84.5425, tier: "district" },
+    { id: "jh-smd-sadar", name: "Sadar Hospital, Simdega", city: "Simdega", role: "District Hospital (Simdega)", lat: 22.6177, lng: 84.5020, tier: "district" },
+    { id: "jh-lhd-sadar", name: "Sadar Hospital, Lohardaga", city: "Lohardaga", role: "District Hospital (Lohardaga)", lat: 23.4334, lng: 84.6805, tier: "district" },
+    { id: "jh-kht-sadar", name: "Sadar Hospital, Khunti", city: "Khunti", role: "District Hospital (Khunti)", lat: 23.0772, lng: 85.2784, tier: "district" },
+    { id: "jh-wsh-sadar", name: "Sadar Hospital, Chaibasa", city: "Chaibasa (West Singhbhum)", role: "District Hospital (West Singhbhum)", lat: 22.5515, lng: 85.8020, tier: "district" },
+    { id: "jh-gdd-sadar", name: "Sadar Hospital, Godda", city: "Godda", role: "District Hospital (Godda)", lat: 24.8286, lng: 87.2131, tier: "district" },
+    { id: "jh-sbg-sadar", name: "Sadar Hospital, Sahibganj", city: "Sahibganj", role: "District Hospital (Sahibganj)", lat: 25.2435, lng: 87.6416, tier: "district" },
+    { id: "jh-pkr-sadar", name: "Sadar Hospital, Pakur", city: "Pakur", role: "District Hospital (Pakur)", lat: 24.6335, lng: 87.8492, tier: "district" },
+    { id: "jh-jmt-sadar", name: "Sadar Hospital, Jamtara", city: "Jamtara", role: "District Hospital (Jamtara)", lat: 23.9628, lng: 86.8037, tier: "district" }
+  ];
+
+  JHARKHAND_HOSPITALS.forEach((h, idx) => {
+    INITIAL_BANKS.push({
+      id: h.id,
+      name: h.name,
+      city: h.city,
+      region: "Jharkhand",
+      role: h.role,
+      lat: h.lat,
+      lng: h.lng,
+      capacity: h.tier === "medical" ? 560 : 280,
+      lastUpdated: `${3 + (idx % 12)} mins ago`,
+      contact: `+91-651-249-${String(1000 + idx).slice(0, 4)} (Demo Desk)`,
+      inventory: makeJharkhandInventory(h.tier, idx)
+    });
+  });
 
   // Fictional demo donor profiles (consent-aware privacy)
   const INITIAL_DONORS = [

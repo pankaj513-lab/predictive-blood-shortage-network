@@ -18,6 +18,10 @@
     donorInquiries: [],
     contactInquiries: [],
     inventory: [],
+    hospitals: [],
+    departments: [],
+    departmentUsers: [],
+    departmentRequests: [],
     editor: {
       coverImagePath: null,
       filePath: null,
@@ -26,6 +30,14 @@
     },
     pendingDeleteId: null
   };
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
 
   function formatBytes(bytes) {
     if (!bytes && bytes !== 0) return "—";
@@ -39,22 +51,29 @@
   }
 
   async function refreshAllAdminData() {
-    const [reports, inqData, invData] = await Promise.all([
+    const [reports, inqData, invData, hospOverview] = await Promise.all([
       global.PBSN_SVC.fetchAdminReports(),
       global.PBSN_SVC.fetchAdminInquiriesAndRequests(),
-      global.PBSN_SVC.fetchBloodInventory()
+      global.PBSN_SVC.fetchBloodInventory(),
+      global.PBSN_SVC.fetchAdminHospitalOverview()
     ]);
     state.reports = reports;
     state.bloodRequests = inqData.bloodRequests;
     state.donorInquiries = inqData.donorInquiries;
     state.contactInquiries = inqData.contactInquiries;
     state.inventory = invData;
+    state.hospitals = hospOverview.hospitals;
+    state.departments = hospOverview.departments;
+    state.departmentUsers = hospOverview.departmentUsers;
+    state.departmentRequests = hospOverview.departmentRequests;
 
     renderOverview();
     renderReportsTable();
     renderInquiriesAndRequests();
     renderInventoryManager();
     renderDocumentsTable();
+    renderHospitalPortalAdmin();
+    renderDepartmentRequestsAdmin();
   }
 
   function renderOverview() {
@@ -74,6 +93,8 @@
       state.bloodRequests.length + state.donorInquiries.length + state.contactInquiries.length
     );
     document.getElementById("side-inv-count").textContent = String(state.inventory.length);
+    document.getElementById("side-hosp-count").textContent = String(state.hospitals.length);
+    document.getElementById("side-dreq-count").textContent = String(state.departmentRequests.length);
 
     const counts = {};
     state.reports.forEach((r) => {
@@ -155,10 +176,10 @@
       const isPub = rep.publication_status === "published";
       tr.innerHTML = `
         <td>
-          <strong>${rep.title}</strong>
-          <div class="eyebrow-mono">${rep.region}${rep.file_path ? ` · 📎 ${rep.file_path.split("/").pop()}` : ""}</div>
+          <strong>${escapeHtml(rep.title)}</strong>
+          <div class="eyebrow-mono">${escapeHtml(rep.region)}${rep.file_path ? ` · 📎 ${escapeHtml(rep.file_path.split("/").pop())}` : ""}</div>
         </td>
-        <td>${rep.category}</td>
+        <td>${escapeHtml(rep.category)}</td>
         <td>${new Date(rep.created_at).toLocaleDateString()}</td>
         <td>${new Date(rep.updated_at).toLocaleString()}</td>
         <td><span class="badge ${isPub ? "badge-low" : "badge-moderate"}">${isPub ? "Published" : "Draft"}</span></td>
@@ -188,13 +209,13 @@
             .map(
               (r) => `
           <tr>
-            <td><code>${r.request_reference}</code></td>
-            <td><strong>${r.blood_group}</strong> · ${r.units_required}u</td>
-            <td>${r.hospital_name} (${r.city})</td>
-            <td>${r.contact_phone}</td>
-            <td><span class="badge ${r.urgency_level.includes("Critical") ? "badge-critical" : "badge-high"}">${r.urgency_level}</span></td>
+            <td><code>${escapeHtml(r.request_reference)}</code></td>
+            <td><strong>${escapeHtml(r.blood_group)}</strong> · ${Number(r.units_required)}u</td>
+            <td>${escapeHtml(r.hospital_name)} (${escapeHtml(r.city)})</td>
+            <td>${escapeHtml(r.contact_phone)}</td>
+            <td><span class="badge ${String(r.urgency_level || "").includes("Critical") ? "badge-critical" : "badge-high"}">${escapeHtml(r.urgency_level)}</span></td>
             <td>
-              <select class="control-select req-status-sel" data-id="${r.id}" style="height:30px;font-size:0.78rem;">
+              <select class="control-select req-status-sel" data-id="${escapeHtml(r.id)}" style="height:30px;font-size:0.78rem;">
                 <option value="Pending" ${r.request_status === "Pending" ? "selected" : ""}>Pending</option>
                 <option value="Matched" ${r.request_status === "Matched" ? "selected" : ""}>Matched</option>
                 <option value="Fulfilled" ${r.request_status === "Fulfilled" ? "selected" : ""}>Fulfilled</option>
@@ -222,10 +243,10 @@
             .map(
               (d) => `
           <tr>
-            <td><strong>${d.donor_name}</strong></td>
-            <td>${d.blood_group}</td>
-            <td>${d.city}</td>
-            <td>${d.phone || d.email || "—"}</td>
+            <td><strong>${escapeHtml(d.donor_name)}</strong></td>
+            <td>${escapeHtml(d.blood_group)}</td>
+            <td>${escapeHtml(d.city)}</td>
+            <td>${escapeHtml(d.phone || d.email || "—")}</td>
             <td><span class="badge ${d.consent_to_contact ? "badge-low" : "badge-moderate"}">${d.consent_to_contact ? "Consented" : "Masked"}</span></td>
           </tr>`
             )
@@ -238,10 +259,10 @@
             .map(
               (c) => `
           <tr>
-            <td><strong>${c.name}</strong></td>
-            <td>${c.subject}</td>
-            <td>${c.email}${c.phone ? ` · ${c.phone}` : ""}</td>
-            <td><span class="badge badge-low">${c.inquiry_status}</span></td>
+            <td><strong>${escapeHtml(c.name)}</strong></td>
+            <td>${escapeHtml(c.subject)}</td>
+            <td>${escapeHtml(c.email)}${c.phone ? ` · ${escapeHtml(c.phone)}` : ""}</td>
+            <td><span class="badge badge-low">${escapeHtml(c.inquiry_status)}</span></td>
           </tr>`
             )
             .join("");
@@ -602,10 +623,327 @@
       document.getElementById(id)?.addEventListener("change", renderReportsTable);
     });
     document.getElementById("doc-search")?.addEventListener("input", renderDocumentsTable);
+    document.getElementById("adm-dreq-hosp-filter")?.addEventListener("change", renderDepartmentRequestsAdmin);
+    document.getElementById("adm-dreq-status-filter")?.addEventListener("change", renderDepartmentRequestsAdmin);
+
+    document.getElementById("adm-dept-template")?.addEventListener("change", (e) => {
+      document.getElementById("adm-dept-custom-fields").style.display = e.target.value === "CUSTOM" ? "grid" : "none";
+    });
+
+    document.getElementById("adm-inv-hosp")?.addEventListener("change", syncInviteDepartmentSelect);
+    document.getElementById("adm-inv-dept")?.addEventListener("change", (e) => {
+      const opt = e.target.selectedOptions[0];
+      if (!opt) return;
+      const code = opt.dataset.code || "";
+      const roleSel = document.getElementById("adm-inv-role");
+      if (code === "DEPT-BBK") roleSel.value = "blood_bank_officer";
+      else if (code === "DEPT-ADM") roleSel.value = "hospital_admin";
+      else roleSel.value = "department_staff";
+    });
+
+    document.getElementById("adm-create-hospital-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("adm-hosp-name").value.trim();
+      const code = document.getElementById("adm-hosp-code").value.trim().toUpperCase();
+      const city = document.getElementById("adm-hosp-city").value.trim();
+      const st = document.getElementById("adm-hosp-state").value.trim();
+      const addr = document.getElementById("adm-hosp-addr").value.trim();
+      if (name.length < 2 || code.length < 3 || city.length < 2) {
+        global.PBSN_CHROME.showToast("Enter valid Hospital Name, Code (min 3 chars), and City.", "error");
+        return;
+      }
+      try {
+        await global.PBSN_SVC.createHospital({ hospital_name: name, hospital_code: code, city, state: st, address: addr });
+        e.target.reset();
+        global.PBSN_CHROME.showToast(`Registered hospital ${code}`, "success");
+        await refreshAllAdminData();
+      } catch (err) {
+        global.PBSN_CHROME.showToast(err.message, "error");
+      }
+    });
+
+    document.getElementById("adm-create-dept-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const hospId = document.getElementById("adm-dept-hosp").value;
+      const tmpl = document.getElementById("adm-dept-template").value;
+      if (!hospId) {
+        global.PBSN_CHROME.showToast("Select or register a hospital first.", "error");
+        return;
+      }
+      let code, name;
+      if (tmpl === "CUSTOM") {
+        name = document.getElementById("adm-dept-custom-name").value.trim();
+        code = document.getElementById("adm-dept-custom-code").value.trim().toUpperCase();
+      } else {
+        [code, name] = tmpl.split("|");
+      }
+      if (!name || !code) {
+        global.PBSN_CHROME.showToast("Enter valid department name and code.", "error");
+        return;
+      }
+      try {
+        await global.PBSN_SVC.createHospitalDepartment({ hospital_id: hospId, department_name: name, department_code: code });
+        global.PBSN_CHROME.showToast(`Added ${name} (${code})`, "success");
+        await refreshAllAdminData();
+      } catch (err) {
+        global.PBSN_CHROME.showToast(err.message, "error");
+      }
+    });
+
+    document.getElementById("adm-provision-all-depts-btn")?.addEventListener("click", async () => {
+      const hospId = document.getElementById("adm-dept-hosp").value;
+      if (!hospId) {
+        global.PBSN_CHROME.showToast("Select or register a hospital first.", "error");
+        return;
+      }
+      try {
+        await global.PBSN_SVC.provisionStandardDepartments(hospId);
+        global.PBSN_CHROME.showToast("Provisioned all 8 standard hospital departments", "success");
+        await refreshAllAdminData();
+      } catch (err) {
+        global.PBSN_CHROME.showToast(err.message, "error");
+      }
+    });
+
+    document.getElementById("adm-invite-user-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const hospId = document.getElementById("adm-inv-hosp").value;
+      const deptId = document.getElementById("adm-inv-dept").value;
+      const fullName = document.getElementById("adm-inv-name").value.trim();
+      const email = document.getElementById("adm-inv-email").value.trim().toLowerCase();
+      const role = document.getElementById("adm-inv-role").value;
+      if (!hospId || !deptId || fullName.length < 2 || !email.includes("@")) {
+        global.PBSN_CHROME.showToast("Select hospital, department, staff name, and valid official email.", "error");
+        return;
+      }
+      try {
+        await global.PBSN_SVC.inviteDepartmentUser({
+          hospital_id: hospId,
+          department_id: deptId,
+          full_name: fullName,
+          official_email: email,
+          role
+        });
+        document.getElementById("adm-inv-name").value = "";
+        document.getElementById("adm-inv-email").value = "";
+        global.PBSN_CHROME.showToast(`Invited ${email} (${role})`, "success");
+        await refreshAllAdminData();
+      } catch (err) {
+        global.PBSN_CHROME.showToast(err.message, "error");
+      }
+    });
 
     document.getElementById("admin-logout-btn").addEventListener("click", async () => {
       await global.PBSN_SVC.signOutAdmin();
       redirectLogin();
+    });
+  }
+
+  function syncInviteDepartmentSelect() {
+    const hospId = document.getElementById("adm-inv-hosp")?.value;
+    const deptSel = document.getElementById("adm-inv-dept");
+    if (!deptSel) return;
+    const list = state.departments.filter((d) => d.hospital_id === hospId);
+    deptSel.innerHTML =
+      list.length === 0
+        ? `<option value="">No departments yet — create in Step 2</option>`
+        : list
+            .map(
+              (d) =>
+                `<option value="${d.id}" data-code="${escapeHtml(d.department_code)}">${escapeHtml(d.department_name)} (${escapeHtml(d.department_code)})</option>`
+            )
+            .join("");
+    deptSel.dispatchEvent(new Event("change"));
+  }
+
+  function renderHospitalPortalAdmin() {
+    document.getElementById("hosp-kpi-total").textContent = String(state.hospitals.length);
+    document.getElementById("hosp-kpi-depts").textContent = String(state.departments.length);
+    document.getElementById("hosp-kpi-users").textContent = String(state.departmentUsers.length);
+    document.getElementById("hosp-kpi-reqs").textContent = String(state.departmentRequests.length);
+
+    const hospOpts =
+      state.hospitals.length === 0
+        ? `<option value="">No hospitals registered yet</option>`
+        : state.hospitals
+            .map((h) => `<option value="${h.id}">${escapeHtml(h.hospital_name)} (${escapeHtml(h.hospital_code)})</option>`)
+            .join("");
+
+    ["adm-dept-hosp", "adm-inv-hosp"].forEach((id) => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = hospOpts;
+      if (prev && state.hospitals.some((h) => h.id === prev)) sel.value = prev;
+    });
+    syncInviteDepartmentSelect();
+
+    const hospFilter = document.getElementById("adm-dreq-hosp-filter");
+    if (hospFilter) {
+      const prev = hospFilter.value;
+      hospFilter.innerHTML =
+        `<option value="ALL">All Hospitals</option>` +
+        state.hospitals.map((h) => `<option value="${h.id}">${escapeHtml(h.hospital_name)} (${escapeHtml(h.hospital_code)})</option>`).join("");
+      if (prev && (prev === "ALL" || state.hospitals.some((h) => h.id === prev))) hospFilter.value = prev;
+    }
+
+    const hospTbody = document.getElementById("adm-hospitals-tbody");
+    hospTbody.innerHTML =
+      state.hospitals.length === 0
+        ? `<tr><td colspan="6">No hospitals registered yet. Use Step 1 above to add a hospital.</td></tr>`
+        : state.hospitals
+            .map((h) => {
+              const dCount = state.departments.filter((d) => d.hospital_id === h.id).length;
+              const uCount = state.departmentUsers.filter((u) => u.hospital_id === h.id && u.is_active).length;
+              const rCount = state.departmentRequests.filter((r) => r.hospital_id === h.id).length;
+              return `
+                <tr>
+                  <td><code>${escapeHtml(h.hospital_code)}</code></td>
+                  <td><strong>${escapeHtml(h.hospital_name)}</strong></td>
+                  <td>${escapeHtml([h.city, h.state].filter(Boolean).join(", "))}</td>
+                  <td class="tabular">${dCount}</td>
+                  <td class="tabular">${uCount}</td>
+                  <td class="tabular">${rCount}</td>
+                </tr>`;
+            })
+            .join("");
+
+    const usersTbody = document.getElementById("adm-dept-users-tbody");
+    usersTbody.innerHTML =
+      state.departmentUsers.length === 0
+        ? `<tr><td colspan="6">No department users invited yet.</td></tr>`
+        : state.departmentUsers
+            .map(
+              (u) => `
+          <tr>
+            <td>
+              <strong>${escapeHtml(u.full_name)}</strong>
+              <div class="eyebrow-mono" style="text-transform:none;">${escapeHtml(u.official_email)}</div>
+            </td>
+            <td>
+              <div>${escapeHtml(u.hospitals?.hospital_name || "—")} (<code>${escapeHtml(u.hospitals?.hospital_code || "—")}</code>)</div>
+              <div class="eyebrow-mono">${escapeHtml(u.hospital_departments?.department_name || "—")} · ${escapeHtml(u.hospital_departments?.department_code || "")}</div>
+            </td>
+            <td><span class="badge ${u.auth_user_id ? "badge-low" : "badge-med"}">${u.auth_user_id ? "Linked" : "Pending Sign-Up"}</span></td>
+            <td>
+              <select class="control-select" data-du-role="${u.id}" style="height:30px;font-size:0.76rem;">
+                <option value="department_staff" ${u.role === "department_staff" ? "selected" : ""}>department_staff</option>
+                <option value="department_head" ${u.role === "department_head" ? "selected" : ""}>department_head</option>
+                <option value="blood_bank_officer" ${u.role === "blood_bank_officer" ? "selected" : ""}>blood_bank_officer</option>
+                <option value="hospital_admin" ${u.role === "hospital_admin" ? "selected" : ""}>hospital_admin</option>
+              </select>
+            </td>
+            <td><span class="badge ${u.is_active ? "badge-low" : "badge-critical"}">${u.is_active ? "Active" : "Inactive"}</span></td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-ghost btn-sm" data-du-toggle="${u.id}" data-next-active="${String(!u.is_active)}">${u.is_active ? "Deactivate" : "Activate"}</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-du-reset="${u.id}" title="Unbind auth session so user must re-verify">Reset Access</button>
+              </div>
+            </td>
+          </tr>`
+            )
+            .join("");
+
+    usersTbody.querySelectorAll("[data-du-role]").forEach((sel) => {
+      sel.addEventListener("change", async () => {
+        try {
+          await global.PBSN_SVC.updateDepartmentUserAdmin(sel.dataset.duRole, { role: sel.value });
+          global.PBSN_CHROME.showToast("Updated department user role", "success");
+          await refreshAllAdminData();
+        } catch (err) {
+          global.PBSN_CHROME.showToast(err.message, "error");
+        }
+      });
+    });
+
+    usersTbody.querySelectorAll("[data-du-toggle]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const nextActive = btn.dataset.nextActive === "true";
+        try {
+          await global.PBSN_SVC.updateDepartmentUserAdmin(btn.dataset.duToggle, { is_active: nextActive });
+          global.PBSN_CHROME.showToast(`Department account ${nextActive ? "activated" : "deactivated"}`, "success");
+          await refreshAllAdminData();
+        } catch (err) {
+          global.PBSN_CHROME.showToast(err.message, "error");
+        }
+      });
+    });
+
+    usersTbody.querySelectorAll("[data-du-reset]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        try {
+          await global.PBSN_SVC.updateDepartmentUserAdmin(btn.dataset.duReset, { auth_user_id: null });
+          global.PBSN_CHROME.showToast("Reset user auth binding in Supabase", "info");
+          await refreshAllAdminData();
+        } catch (err) {
+          global.PBSN_CHROME.showToast(err.message, "error");
+        }
+      });
+    });
+  }
+
+  function renderDepartmentRequestsAdmin() {
+    const hospFilter = document.getElementById("adm-dreq-hosp-filter")?.value || "ALL";
+    const statusFilter = document.getElementById("adm-dreq-status-filter")?.value || "ALL";
+    const tbody = document.getElementById("adm-dept-requests-tbody");
+    if (!tbody) return;
+
+    const list = state.departmentRequests.filter((r) => {
+      if (hospFilter !== "ALL" && r.hospital_id !== hospFilter) return false;
+      if (statusFilter !== "ALL" && r.request_status !== statusFilter) return false;
+      return true;
+    });
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8">No department blood requests match the selected filters.</td></tr>`;
+      return;
+    }
+
+    const statuses = ["Pending", "Under Review", "Approved", "Fulfilled", "Rejected"];
+    tbody.innerHTML = list
+      .map(
+        (r) => `
+      <tr>
+        <td>
+          <strong>${escapeHtml(r.hospitals?.hospital_name || "—")}</strong>
+          <div class="eyebrow-mono">${escapeHtml(r.hospital_departments?.department_name || "—")} (${escapeHtml(r.hospital_departments?.department_code || "")})</div>
+        </td>
+        <td><code>${escapeHtml(r.patient_reference)}</code></td>
+        <td><strong>${escapeHtml(r.blood_group)}</strong> · ${r.units_required}u</td>
+        <td><span class="badge ${r.urgency_level === "Critical" ? "badge-critical" : "badge-info"}">${escapeHtml(r.urgency_level)}</span></td>
+        <td>${new Date(r.required_datetime).toLocaleString()}</td>
+        <td style="max-width:220px;">
+          <div><strong>${escapeHtml(r.staff_name)}</strong></div>
+          <div style="font-size:0.76rem;color:var(--text-muted);">${escapeHtml(r.notes || "—")}</div>
+        </td>
+        <td><span class="badge ${r.request_status === "Approved" || r.request_status === "Fulfilled" ? "badge-low" : r.request_status === "Rejected" ? "badge-critical" : "badge-med"}">${escapeHtml(r.request_status)}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="control-select" data-adm-dreq-sel="${r.id}" style="min-width:128px;height:30px;font-size:0.76rem;">
+              ${statuses.map((s) => `<option value="${s}" ${r.request_status === s ? "selected" : ""}>${s}</option>`).join("")}
+            </select>
+            <button type="button" class="btn btn-primary btn-sm" data-adm-dreq-save="${r.id}">Update</button>
+          </div>
+        </td>
+      </tr>`
+      )
+      .join("");
+
+    tbody.querySelectorAll("[data-adm-dreq-save]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.admDreqSave;
+        const sel = tbody.querySelector(`[data-adm-dreq-sel="${id}"]`);
+        btn.disabled = true;
+        try {
+          await global.PBSN_SVC.updateDepartmentBloodRequestStatus(id, sel.value);
+          global.PBSN_CHROME.showToast(`Department request set to ${sel.value}`, "success");
+          await refreshAllAdminData();
+        } catch (err) {
+          global.PBSN_CHROME.showToast(err.message, "error");
+        } finally {
+          btn.disabled = false;
+        }
+      });
     });
   }
 

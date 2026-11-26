@@ -7,6 +7,14 @@
   const { BLOOD_GROUPS, CITIES, INITIAL_BANKS, INITIAL_DONORS, INITIAL_REQUESTS } = global.PBSN_DATA;
   const { evaluateDashboard, generateInsightsAndTransfers, predictWithOptionalBackend } = global.PBSN_ENGINE;
 
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
   function loadStored(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -16,8 +24,17 @@
     }
   }
 
+  function loadBanksWithNewDefaults() {
+    const stored = loadStored("pbsn_banks", INITIAL_BANKS);
+    const seen = new Set(stored.map((b) => b.id));
+    INITIAL_BANKS.forEach((ib) => {
+      if (!seen.has(ib.id)) stored.push(structuredClone(ib));
+    });
+    return stored;
+  }
+
   const state = {
-    banks: loadStored("pbsn_banks", INITIAL_BANKS),
+    banks: loadBanksWithNewDefaults(),
     donors: loadStored("pbsn_donors", INITIAL_DONORS),
     requests: loadStored("pbsn_requests", INITIAL_REQUESTS),
     inquiries: loadStored("pbsn_inquiries", []),
@@ -490,13 +507,13 @@
         .map(
           (r) => `
         <tr>
-          <td><code>${r.refId}</code></td>
-          <td><strong>${r.group}</strong></td>
-          <td>${r.units} u</td>
-          <td>${r.hospital} (${r.city})</td>
-          <td><span class="badge ${r.urgency.includes("Critical") ? "badge-critical" : r.urgency === "Urgent" ? "badge-high" : "badge-low"}">${r.urgency}</span></td>
-          <td>${r.status}</td>
-          <td>${r.createdAt}</td>
+          <td><code>${escapeHtml(r.refId)}</code></td>
+          <td><strong>${escapeHtml(r.group)}</strong></td>
+          <td>${escapeHtml(r.units)} u</td>
+          <td>${escapeHtml(r.hospital)} (${escapeHtml(r.city)})</td>
+          <td><span class="badge ${String(r.urgency || "").includes("Critical") ? "badge-critical" : r.urgency === "Urgent" ? "badge-high" : "badge-low"}">${escapeHtml(r.urgency)}</span></td>
+          <td>${escapeHtml(r.status)}</td>
+          <td>${escapeHtml(r.createdAt)}</td>
         </tr>`
         )
         .join("");
@@ -520,11 +537,11 @@
                 (d) => `
           <div class="panel" style="gap:8px;">
             <div class="panel-head">
-              <strong>${d.alias} · Group ${d.group}</strong>
+              <strong>${escapeHtml(d.alias)} · Group ${escapeHtml(d.group)}</strong>
               <span class="badge ${d.available ? "badge-low" : "badge-moderate"}">${d.available ? "Available" : "Cooling Period"}</span>
             </div>
-            <div style="font-size:0.84rem;color:var(--text-secondary);">City: ${d.city} · Last donated: ${d.lastDonated}</div>
-            <div class="eyebrow-mono">${d.consentPublic ? `Contact: ${d.preference}` : "Contact masked (consent restricted)"}</div>
+            <div style="font-size:0.84rem;color:var(--text-secondary);">City: ${escapeHtml(d.city)} · Last donated: ${escapeHtml(d.lastDonated)}</div>
+            <div class="eyebrow-mono">${d.consentPublic ? `Contact: ${escapeHtml(d.preference)}` : "Contact masked (consent restricted)"}</div>
           </div>`
               )
               .join("");
@@ -610,7 +627,7 @@
 
           const conf = document.getElementById("req-confirmation");
           conf.style.display = "block";
-          conf.innerHTML = `<strong>Inquiry ${refId} Confirmed in Supabase:</strong> ${units} units of ${group} requested for ${hospital}, ${city}.`;
+          conf.innerHTML = `<strong>Inquiry ${escapeHtml(refId)} Confirmed in Supabase:</strong> ${escapeHtml(units)} units of ${escapeHtml(group)} requested for ${escapeHtml(hospital)}, ${escapeHtml(city)}.`;
           global.PBSN_CHROME.showToast(`Blood request ${refId} saved to Supabase`, "success");
         });
       });
@@ -663,7 +680,7 @@
           const conf = document.getElementById("donor-confirmation");
           if (conf) {
             conf.style.display = "block";
-            conf.innerHTML = `<strong>Donor Inquiry Saved in Supabase:</strong> ${alias} (${group}, ${city}) registered with consent privacy enforced.`;
+            conf.innerHTML = `<strong>Donor Inquiry Saved in Supabase:</strong> ${escapeHtml(alias)} (${escapeHtml(group)}, ${escapeHtml(city)}) registered with consent privacy enforced.`;
           }
           global.PBSN_CHROME.showToast(`Donor inquiry saved to Supabase for ${city}`, "success");
         });
@@ -730,7 +747,7 @@
 
           const conf = document.getElementById("bank-inq-confirmation");
           conf.style.display = "block";
-          conf.innerHTML = `<strong>Inquiry ${refId} Confirmed in Supabase:</strong> Availability inquiry for ${units}u ${group} sent to ${hospital} (${city}).`;
+          conf.innerHTML = `<strong>Inquiry ${escapeHtml(refId)} Confirmed in Supabase:</strong> Availability inquiry for ${escapeHtml(units)}u ${escapeHtml(group)} sent to ${escapeHtml(hospital)} (${escapeHtml(city)}).`;
           global.PBSN_CHROME.showToast(`Inquiry saved for ${hospital}`, "success");
         });
       });
@@ -770,7 +787,7 @@
           campForm.reset();
           const conf = document.getElementById("camp-confirmation");
           conf.style.display = "block";
-          conf.innerHTML = `<strong>Inquiry Saved in Supabase:</strong> Logged for ${org} (${city}, Focus: ${group}).`;
+          conf.innerHTML = `<strong>Inquiry Saved in Supabase:</strong> Logged for ${escapeHtml(org)} (${escapeHtml(city)}, Focus: ${escapeHtml(group)}).`;
           global.PBSN_CHROME.showToast(`Contact inquiry saved to Supabase for ${org}`, "success");
         });
       });

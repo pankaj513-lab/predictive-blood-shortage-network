@@ -12,17 +12,36 @@
     if (global.__PBSN_ENV__ && global.__PBSN_ENV__.VITE_SUPABASE_URL && global.__PBSN_ENV__.VITE_SUPABASE_ANON_KEY) {
       return global.__PBSN_ENV__;
     }
-    const base = window.location.protocol.startsWith("http") ? "" : "http://127.0.0.1:8000";
-    const res = await fetch(`${base}/api/config`);
-    if (!res.ok) {
-      throw new Error("Unable to load Supabase runtime config from /api/config.");
+
+    const isHttp = window.location.protocol.startsWith("http");
+    const candidates = isHttp
+      ? ["/api/config", "http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config"]
+      : ["http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config", "http://127.0.0.1:8000/api/config"];
+
+    let lastErr = null;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          lastErr = new Error(`HTTP ${res.status} from ${url}`);
+          continue;
+        }
+        const cfg = await res.json();
+        if (!cfg.VITE_SUPABASE_URL || !cfg.VITE_SUPABASE_ANON_KEY) {
+          lastErr = new Error("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing in .env.");
+          continue;
+        }
+        global.__PBSN_ENV__ = cfg;
+        return cfg;
+      } catch (err) {
+        lastErr = err;
+      }
     }
-    const cfg = await res.json();
-    if (!cfg.VITE_SUPABASE_URL || !cfg.VITE_SUPABASE_ANON_KEY) {
-      throw new Error("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing in .env.");
-    }
-    global.__PBSN_ENV__ = cfg;
-    return cfg;
+
+    throw new Error(
+      `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). ` +
+        `Start PBSN using start_pbsn.bat and open http://localhost:5173/admin-login.html.`
+    );
   }
 
   async function getSupabase() {
@@ -36,7 +55,7 @@
           auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: false
+            detectSessionInUrl: true
           }
         });
       })().catch((err) => {

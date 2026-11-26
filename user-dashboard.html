@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Account Dashboard — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+</head>
+<body data-page="auth">
+  <div id="shared-header"></div>
+
+  <main style="padding: 96px 0 64px;">
+    <div class="container">
+      <!-- User Profile Banner -->
+      <section class="dept-banner" aria-label="User Profile Summary">
+        <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+          <div class="user-avatar-lg" id="usr-avatar-box">
+            <span id="usr-avatar-initials">U</span>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="eyebrow-mono" id="usr-provider-tag">SUPABASE AUTH SESSION</span>
+              <span class="badge badge-low" id="usr-verified-badge">Verified</span>
+            </div>
+            <h1 class="display-lg" id="usr-full-name" style="margin:6px 0 4px; color:#fff;">Loading profile...</h1>
+            <div style="font-size:0.92rem; color:rgba(248,250,252,0.84);" id="usr-email">—</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <a href="./dashboard.html" class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.28);">AI Dashboard →</a>
+          <button type="button" class="btn btn-red btn-sm" id="usr-logout-btn">Logout</button>
+        </div>
+      </section>
+
+      <!-- Account Info KPIs -->
+      <section class="kpi-strip" style="margin-bottom: 22px;">
+        <div class="kpi-card">
+          <div class="eyebrow-mono">AUTH PROVIDER</div>
+          <div class="kpi-value" id="usr-kpi-provider" style="font-size:1.55rem;">—</div>
+          <div class="kpi-sub">OAuth 2.0 / Email Verification</div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">SESSION PERSISTENCE</div>
+          <div class="kpi-value mint" style="font-size:1.55rem;">Active</div>
+          <div class="kpi-sub">Auto-refreshing encrypted JWT</div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">ACCOUNT CREATED</div>
+          <div class="kpi-value" id="usr-kpi-created" style="font-size:1.35rem;">—</div>
+          <div class="kpi-sub">Stored in <code>public.user_profiles</code></div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">LAST SIGN-IN</div>
+          <div class="kpi-value" id="usr-kpi-last-signin" style="font-size:1.15rem;">—</div>
+          <div class="kpi-sub">Protected by Supabase RLS</div>
+        </div>
+      </section>
+
+      <!-- Two-Column Profile Management & Security -->
+      <section class="grid-2" style="gap: 22px; align-items: start; margin-bottom: 22px;">
+        <form class="panel" id="usr-profile-form">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow-mono">PUBLIC.USER_PROFILES</div>
+              <h2 class="panel-title">Profile Information</h2>
+            </div>
+            <span class="badge badge-info">RLS: auth.uid() = id</span>
+          </div>
+
+          <div class="field-group">
+            <label for="prof-name">Full Name</label>
+            <input id="prof-name" type="text" class="field-input" required />
+          </div>
+          <div class="field-group">
+            <label for="prof-email">Email Address (Managed by Auth Provider)</label>
+            <input id="prof-email" type="email" class="field-input" readonly />
+          </div>
+          <div class="field-group">
+            <label for="prof-avatar-url">Profile Picture URL</label>
+            <input id="prof-avatar-url" type="text" class="field-input" readonly placeholder="Synced automatically via Google OAuth when connected" />
+          </div>
+
+          <div class="field-error" id="prof-error"></div>
+          <button type="submit" id="prof-save-btn" class="btn btn-primary">Save Profile Name</button>
+        </form>
+
+        <form class="panel" id="usr-password-form">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow-mono">ACCOUNT SECURITY</div>
+              <h2 class="panel-title">Update Password</h2>
+            </div>
+            <span class="badge badge-low">Encrypted</span>
+          </div>
+          <p class="lead-lg" style="font-size:0.85rem;">
+            Update your Supabase Auth password anytime. Your session remains active across reloads until you click Logout.
+          </p>
+          <div class="field-group">
+            <label for="upd-pass">New Password (min 8 chars)</label>
+            <div class="pwd-wrap">
+              <input id="upd-pass" type="password" class="field-input" minlength="8" placeholder="Enter new password" required />
+              <button type="button" class="pwd-toggle" id="toggle-upd-pwd">SHOW</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="upd-confirm">Confirm New Password</label>
+            <input id="upd-confirm" type="password" class="field-input" minlength="8" placeholder="Confirm new password" required />
+          </div>
+          <div class="field-error" id="upd-pass-error"></div>
+          <button type="submit" id="upd-pass-btn" class="btn btn-red">Update Account Password</button>
+        </form>
+      </section>
+
+      <!-- PBSN Platform Quick Navigation -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">PBSN Healthcare Platform Access</h2>
+          <span class="eyebrow-mono">INTEGRATED WORKSPACE</span>
+        </div>
+        <div class="grid-3" style="gap: 12px;">
+          <a class="mega-card" href="./dashboard.html#predictor"><strong>AI Shortage Predictor <span>→</span></strong><span>Forecast regional shortages across 8 blood groups.</span></a>
+          <a class="mega-card" href="./requests-donors.html"><strong>Requests &amp; Donors <span>→</span></strong><span>Send emergency blood &amp; donor network inquiries.</span></a>
+          <a class="mega-card" href="./hospital-login.html"><strong>Hospital Department Portal <span>→</span></strong><span>Clinical department login &amp; blood unit requests.</span></a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="shared-footer"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      window.PBSN_CHROME.renderSharedChrome();
+
+      function renderUser(profile, user) {
+        const name = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "PBSN User";
+        const email = profile?.email || user.email || "—";
+        const avatar = profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+        const provider = (profile?.auth_provider || user.app_metadata?.provider || "email").toUpperCase();
+        const confirmed = Boolean(user.email_confirmed_at);
+
+        document.getElementById("usr-full-name").textContent = name;
+        document.getElementById("usr-email").textContent = email;
+        document.getElementById("usr-provider-tag").textContent = `${provider} AUTHENTICATED`;
+        document.getElementById("usr-verified-badge").textContent = confirmed ? "Verified Email" : "Pending Verification";
+        document.getElementById("usr-verified-badge").className = `badge ${confirmed ? "badge-low" : "badge-med"}`;
+        document.getElementById("usr-kpi-provider").textContent = provider === "GOOGLE" ? "Google OAuth" : "Email & Password";
+        document.getElementById("usr-kpi-created").textContent = new Date(user.created_at || Date.now()).toLocaleDateString();
+        document.getElementById("usr-kpi-last-signin").textContent = user.last_sign_in_at
+          ? new Date(user.last_sign_in_at).toLocaleString()
+          : "Just now";
+
+        const avatarBox = document.getElementById("usr-avatar-box");
+        if (avatar) {
+          const img = document.createElement("img");
+          img.src = avatar;
+          img.alt = `${name} profile picture`;
+          img.referrerPolicy = "no-referrer";
+          avatarBox.innerHTML = "";
+          avatarBox.appendChild(img);
+        } else {
+          const initials = name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0].toUpperCase())
+            .join("") || "U";
+          document.getElementById("usr-avatar-initials").textContent = initials;
+        }
+
+        document.getElementById("prof-name").value = name;
+        document.getElementById("prof-email").value = email;
+        document.getElementById("prof-avatar-url").value = avatar;
+      }
+
+      try {
+        const sessionInfo = await window.PBSN_SVC.getUserSessionProfile();
+        if (!sessionInfo) {
+          window.location.href = "./auth.html";
+          return;
+        }
+        renderUser(sessionInfo.profile, sessionInfo.user);
+      } catch (err) {
+        window.PBSN_CHROME.showToast(err.message || "Authentication required", "error");
+        window.location.href = "./auth.html";
+        return;
+      }
+
+      document.getElementById("toggle-upd-pwd").addEventListener("click", () => {
+        const inp = document.getElementById("upd-pass");
+        const btn = document.getElementById("toggle-upd-pwd");
+        const isPwd = inp.type === "password";
+        inp.type = isPwd ? "text" : "password";
+        btn.textContent = isPwd ? "HIDE" : "SHOW";
+      });
+
+      document.getElementById("usr-profile-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("prof-error");
+        const btn = document.getElementById("prof-save-btn");
+        const full_name = document.getElementById("prof-name").value.trim();
+        if (full_name.length < 2) {
+          errEl.textContent = "Full name must be at least 2 characters.";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        try {
+          const updated = await window.PBSN_SVC.updateUserProfileDetails({ full_name });
+          document.getElementById("usr-full-name").textContent = updated.full_name;
+          window.PBSN_CHROME.showToast("Profile updated in Supabase!", "success");
+        } catch (err) {
+          errEl.textContent = err.message;
+          window.PBSN_CHROME.showToast(err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save Profile Name";
+        }
+      });
+
+      document.getElementById("usr-password-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("upd-pass-error");
+        const btn = document.getElementById("upd-pass-btn");
+        const p1 = document.getElementById("upd-pass").value;
+        const p2 = document.getElementById("upd-confirm").value;
+        if (p1.length < 8 || p1 !== p2) {
+          errEl.textContent = "Passwords must match and be at least 8 characters.";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Updating...";
+        try {
+          await window.PBSN_SVC.updateUserPassword(p1);
+          e.target.reset();
+          window.PBSN_CHROME.showToast("Account password updated!", "success");
+        } catch (err) {
+          errEl.textContent = err.message;
+          window.PBSN_CHROME.showToast(err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Update Account Password";
+        }
+      });
+
+      document.getElementById("usr-logout-btn").addEventListener("click", async () => {
+        await window.PBSN_SVC.signOutUser();
+        window.PBSN_CHROME.showToast("Logged out cleanly.", "info");
+        window.location.href = "./auth.html";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -177,8 +177,8 @@ button, select { cursor: pointer; }
 .nav-item {
   background: transparent;
   border: 0;
-  padding: 7px 11px;
-  font-size: 0.83rem;
+  padding: 7px 9px;
+  font-size: 0.81rem;
   color: var(--text-secondary);
   border-radius: 6px;
   white-space: nowrap;
@@ -213,7 +213,7 @@ html.light-theme .nav-item:hover, html.light-theme .nav-item.active {
 .mega-drawer-inner { overflow: hidden; }
 .mega-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   padding: 14px 18px 18px;
   border-top: 1px solid var(--line);
@@ -744,6 +744,184 @@ html.light-theme .team-avatar-placeholder {
 .report-card:hover .report-cover img { transform: scale(1.03); }
 .report-card-body { padding: 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 
+/* ── Hospital Department Portal Helpers ─────────────────────────────────── */
+.pwd-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pwd-wrap .field-input {
+  width: 100%;
+  padding-right: 72px;
+}
+.pwd-toggle {
+  position: absolute;
+  right: 8px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+.pwd-toggle:hover { border-color: var(--line-strong); color: var(--text); }
+.portal-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.portal-tab {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.portal-tab.active {
+  background: var(--red);
+  color: #fff;
+}
+.badge-info {
+  border-color: rgba(78, 168, 222, 0.45);
+  background: rgba(78, 168, 222, 0.14);
+  color: var(--blue);
+}
+.badge-critical {
+  border-color: rgba(230, 57, 70, 0.55);
+  background: rgba(230, 57, 70, 0.18);
+  color: var(--red-bright);
+}
+.dept-banner {
+  border-radius: 14px;
+  border: 1px solid rgba(230, 57, 70, 0.35);
+  background: linear-gradient(125deg, rgba(15, 22, 38, 0.96), rgba(32, 16, 28, 0.92));
+  color: #f8fafc;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.dept-banner .eyebrow-mono { color: rgba(248, 250, 252, 0.68); }
+.dept-code-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dept-chip-btn {
+  border: 1px solid var(--line);
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+}
+.dept-chip-btn:hover { border-color: var(--red); color: var(--text); }
+
+/* ── Modern User Authentication (Google OAuth + Email + Strength Meter) ─── */
+.google-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid #dadce0;
+  background: #ffffff;
+  color: #1f1f1f;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 100ms ease;
+}
+.google-btn:hover { background: #f8f9fa; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14); }
+.google-btn:active { transform: scale(0.99); }
+.google-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.pwd-strength-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.2);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.pwd-strength-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 200ms ease, background 200ms ease;
+}
+.pwd-strength-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  display: inline-block;
+  animation: pbsn-spin 650ms linear infinite;
+}
+@keyframes pbsn-spin { to { transform: rotate(360deg); } }
+.auth-status-box {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(46, 196, 182, 0.45);
+  background: rgba(46, 196, 182, 0.12);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.user-avatar-lg {
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+  background: linear-gradient(135deg, #e63946, #1d3557);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.55rem;
+  color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.user-avatar-lg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 /* Footer */
 footer { border-top: 1px solid var(--line); background: var(--bg); padding: 3.5rem 0 2.5rem; }
 .footer-lockup {
@@ -776,6 +954,10 @@ footer { border-top: 1px solid var(--line); background: var(--bg); padding: 3.5r
   .footer-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 620px) {
+  .nav-bar { padding: 0 10px; gap: 6px; }
+  .nav-actions { gap: 5px; }
+  #presentation-btn { display: none; }
+  .nav-actions .btn-sm { padding: 0 10px; font-size: 0.74rem; }
   .report-cards-grid, .cc-controls, .kpi-strip, .hero-preview-strip, .grid-4, .workflow-grid, .mega-grid, .footer-directory, .team-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {

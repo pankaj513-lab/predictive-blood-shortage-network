@@ -153,9 +153,25 @@
           window.location.href = "./admin.html";
         } catch (err) {
           errEl.textContent = err.message || "Bootstrap failed.";
+          if (email) {
+            document.getElementById("login-email").value = email.trim().toLowerCase();
+          }
+          if (/rate limit/i.test(err.message || "")) {
+            btn.dataset.cooldownUntil = String(Date.now() + 60000);
+          }
         } finally {
-          btn.disabled = false;
-          btn.textContent = "Create Admin Account & Sign In";
+          const until = Number(btn.dataset.cooldownUntil || 0);
+          if (until > Date.now()) {
+            btn.disabled = true;
+            btn.textContent = "Sign-up paused (rate limit) — use Sign In above";
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.textContent = "Create Admin Account & Sign In";
+            }, Math.max(0, until - Date.now()));
+          } else {
+            btn.disabled = false;
+            btn.textContent = "Create Admin Account & Sign In";
+          }
         }
       });
     });
