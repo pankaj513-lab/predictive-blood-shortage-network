@@ -1,36 +1,31 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "builds": [
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "styles.css", "use": "@vercel/static" },
-    { "src": "src/**", "use": "@vercel/static" },
-    { "src": "assets/**", "use": "@vercel/static" },
-    { "src": "api/*.js", "use": "@vercel/node" }
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/ai-prediction", "destination": "/dashboard.html" },
+    { "source": "/donors", "destination": "/requests-donors.html" },
+    { "source": "/contact", "destination": "/about.html" }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "^/(.*)$",
-      "headers": {
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "SAMEORIGIN",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)"
-      },
-      "continue": true
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" }
+      ]
     },
     {
-      "src": "^/api/config$",
-      "dest": "/api/config.js",
-      "headers": { "Cache-Control": "no-store" }
-    },
-    { "src": "^/$", "dest": "/index.html" },
-    { "src": "^/ai-prediction$", "dest": "/dashboard.html" },
-    { "src": "^/donors$", "dest": "/requests-donors.html" },
-    { "src": "^/contact$", "dest": "/about.html" },
-    {
-      "src": "^/(dashboard|network|requests-donors|reports|about|auth|user-dashboard|hospital-login|hospital-dashboard|admin-login|admin)$",
-      "dest": "/$1.html"
-    },
-    { "handle": "filesystem" }
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
   ]
 }

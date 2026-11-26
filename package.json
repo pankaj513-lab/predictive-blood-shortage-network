@@ -1,0 +1,12 @@
+{
+  "name": "predictive-blood-shortage-network",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Predictive Blood Shortage Network (PBSN) static frontend + Vercel /api/config",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
