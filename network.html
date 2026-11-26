@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Availability Network &amp; Live Map — PBSN</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/data.js"></script>
+  <script defer src="./src/engine.js"></script>
+  <script defer src="./src/mapView.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/animations.js"></script>
+  <script defer src="./src/app.js"></script>
+</head>
+<body data-page="network">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>BLOOD AVAILABILITY NETWORK</span></div>
+        <h1 class="display-xl">Regional Hospital &amp; Blood Bank Map</h1>
+      </div>
+      <div>
+        <p class="lead-lg" style="margin-bottom: 1rem;">
+          Search connected blood centres across New Delhi, Mumbai, Bengaluru, Chennai, Hyderabad, Pune, Kolkata, and Ahmedabad. Click any marker to inspect live demo stock.
+        </p>
+        <span class="demo-tag">Fictional Demo Inventory · Real City Coordinates</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- D. Blood Availability Network -->
+  <section class="section-band">
+    <div class="container">
+      <div class="cc-controls" style="grid-template-columns: 1.4fr 1fr 1fr 1fr;">
+        <div class="field-group">
+          <label for="net-search">Search Blood Bank or City</label>
+          <input id="net-search" type="search" class="field-input" placeholder="e.g., AIIMS, Mumbai, Apollo..." />
+        </div>
+        <div class="field-group">
+          <label for="flt-group">Filter by Blood Group</label>
+          <select id="flt-group" class="control-select" data-populate="groups">
+            <option value="ALL" selected>All Blood Groups</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="flt-region">Filter by City</label>
+          <select id="flt-region" class="control-select" data-populate="cities">
+            <option value="ALL" selected>All Cities</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="net-sort">Sort Directory</label>
+          <select id="net-sort" class="control-select">
+            <option value="units_desc" selected>Highest Available Units</option>
+            <option value="cover_asc">Lowest Buffer Days (Urgent)</option>
+            <option value="city_asc">City Name (A–Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); margin-bottom: 20px;">
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Interactive India Blood Network Map</h2>
+            <span class="eyebrow-mono">LEAFLET OPENSTREETMAP + AUTO SVG FALLBACK</span>
+          </div>
+          <div id="pbsn-map" class="map-box"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;" class="eyebrow-mono">
+            <span><span class="dot-red"></span> Critical / High Risk</span>
+            <span><span style="width:7px;height:7px;border-radius:99px;background:#f5a623;display:inline-block;"></span> Moderate Risk</span>
+            <span><span class="dot-mint"></span> Low Risk</span>
+            <span>--- Dashed Lines: AI Redistribution Routes</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">AI Inter-City Transfer Routes</h2>
+            <span class="eyebrow-mono">ONE-CLICK DEMO DISPATCH</span>
+          </div>
+          <div id="network-transfers-list" style="overflow-y:auto;max-height:410px;"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom: 20px;">
+        <div class="panel-head">
+          <h2 class="panel-title">Connected Hospitals &amp; Blood Centres Directory</h2>
+          <span class="eyebrow-mono">DEMO CONTACT &amp; LIVE INVENTORY STATUS</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Hospital / Blood Centre</th>
+                <th>City &amp; Region</th>
+                <th>Available / Cap</th>
+                <th>Min Buffer</th>
+                <th>Last Updated</th>
+                <th>Contact (Demo)</th>
+                <th>Inventory Status</th>
+                <th>Inquiry</th>
+              </tr>
+            </thead>
+            <tbody id="network-banks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="media-card">
+          <div class="media-frame">
+            <img src="./assets/images/lab-mumbai.jpg" alt="Real clinical pathology blood testing laboratory in Navi Mumbai, India with diagnostic analyzers" />
+          </div>
+          <div class="media-caption">
+            <div>
+              <div class="eyebrow-mono">PATHOLOGY LAB · CC BY 4.0 (GOLEISUREINTL)</div>
+              <strong>Blood Screening &amp; Compatibility Testing</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="media-card">
+          <div class="media-frame">
+            <img src="./assets/images/lab-nabl.jpg" alt="NABL accredited clinical pathology laboratory diagnostic bench in Kharghar, Navi Mumbai" />
+          </div>
+          <div class="media-caption">
+            <div>
+              <div class="eyebrow-mono">DIAGNOSTIC BENCH · CC BY 4.0 (GOLEISUREINTL)</div>
+              <strong>NABL-Grade Sample Verification</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="media-card">
+          <div class="media-frame">
+            <img src="./assets/images/blood-bags.jpg" alt="Real donated blood bags stored for regional hospital transfusion inventory" />
+          </div>
+          <div class="media-caption">
+            <div>
+              <div class="eyebrow-mono">BLOOD INVENTORY · CC BY-SA 2.0 (ANTONIO)</div>
+              <strong>Cold-Chain Storage &amp; Allocation</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blood Bank / Availability Inquiry Modal -->
+  <div class="modal-backdrop" id="bank-inquiry-modal" role="dialog" aria-modal="true" aria-label="Blood Availability Inquiry">
+    <div class="modal-card">
+      <div class="panel-head" style="margin-bottom: 10px;">
+        <div>
+          <div class="eyebrow-mono">BLOOD AVAILABILITY INQUIRY</div>
+          <h2 class="display-md" style="margin: 4px 0 0;" id="bank-inq-title">Send Inquiry to Blood Bank</h2>
+        </div>
+        <button class="icon-btn" type="button" id="close-bank-inq-btn">✕ Close</button>
+      </div>
+      <form id="bank-inquiry-form" style="display:flex;flex-direction:column;gap:12px;" novalidate>
+        <input type="hidden" id="bank-inq-bank-id" />
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="bank-inq-hospital">Target Blood Bank</label>
+            <input id="bank-inq-hospital" type="text" class="field-input" readonly />
+          </div>
+          <div class="field-group">
+            <label for="bank-inq-city">City</label>
+            <input id="bank-inq-city" type="text" class="field-input" readonly />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="bank-inq-group">Required Blood Group</label>
+            <select id="bank-inq-group" class="control-select" data-populate="groups"></select>
+          </div>
+          <div class="field-group">
+            <label for="bank-inq-units">Required Units</label>
+            <input id="bank-inq-units" type="number" min="1" max="50" value="2" class="field-input" required />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="bank-inq-contact">Hospital / Coordinator Contact</label>
+          <input id="bank-inq-contact" type="text" class="field-input" placeholder="e.g., coordinator@hospital.org or +91-98XXX-XXXXX" required />
+        </div>
+        <div class="field-group">
+          <label for="bank-inq-notes">Clinical / Logistics Notes (No Patient PII)</label>
+          <input id="bank-inq-notes" type="text" class="field-input" placeholder="e.g., Cold-chain pickup window or compatibility check" />
+        </div>
+        <div class="field-error" id="bank-inq-error"></div>
+        <button type="submit" id="bank-inq-submit-btn" class="btn btn-red" style="width: 100%;">Send Inquiry</button>
+        <div id="bank-inq-confirmation" style="display:none;padding:12px;border-radius:8px;border:1px solid var(--mint);background:rgba(46,196,182,0.12);font-size:0.85rem;"></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+</body>
+</html>

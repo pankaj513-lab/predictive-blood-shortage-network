@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency Blood Requests &amp; Donor Network — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/data.js"></script>
+  <script defer src="./src/engine.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/animations.js"></script>
+  <script defer src="./src/app.js"></script>
+</head>
+<body data-page="requests">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>EMERGENCY REQUESTS &amp; DONORS</span></div>
+        <h1 class="display-xl">Coordinate Urgent Blood Requests &amp; Donors</h1>
+      </div>
+      <div>
+        <p class="lead-lg" style="margin-bottom: 1rem;">
+          Log anonymized hospital blood requests for immediate demo queue tracking, and register or discover consented voluntary donors across Indian cities.
+        </p>
+        <span class="demo-tag">Privacy-First: No Public Patient PII</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- E. Emergency Blood Request -->
+  <section class="section-band">
+    <div class="container grid-2" style="margin-bottom: 24px;">
+      <form class="panel" id="emergency-request-form" novalidate>
+        <div class="panel-head">
+          <h2 class="panel-title">Emergency Blood Request Form</h2>
+          <span class="eyebrow-mono">POST /API/BLOOD-REQUESTS (DEMO)</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="req-ref">Anonymized Request Reference</label>
+            <input id="req-ref" type="text" class="field-input" placeholder="e.g., REQ-DEL-912" required />
+          </div>
+          <div class="field-group">
+            <label for="req-group">Required Blood Group</label>
+            <select id="req-group" class="control-select" data-populate="groups"></select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="req-units">Required Units</label>
+            <input id="req-units" type="number" min="1" max="50" value="4" class="field-input" required />
+          </div>
+          <div class="field-group">
+            <label for="req-urgency">Urgency Level</label>
+            <select id="req-urgency" class="control-select">
+              <option value="Critical Emergency">Critical Emergency</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Routine">Routine</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="req-hospital">Hospital Name</label>
+            <select id="req-hospital" class="control-select" data-populate="hospitals" data-value-mode="name"></select>
+          </div>
+          <div class="field-group">
+            <label for="req-city">City / Region</label>
+            <select id="req-city" class="control-select" data-populate="cities"></select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="req-contact">Official Hospital Desk Contact</label>
+          <input id="req-contact" type="text" class="field-input" placeholder="e.g., bloodbank-desk@hospital.org or +91-11-XXXX" required />
+        </div>
+
+        <div class="field-error" id="req-error"></div>
+        <button type="submit" id="req-submit-btn" class="btn btn-red" style="width: 100%;">Send Inquiry</button>
+        <div id="req-confirmation" style="display:none;padding:12px;border-radius:8px;border:1px solid var(--mint);background:rgba(46,196,182,0.12);font-size:0.85rem;"></div>
+      </form>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Live Demo Emergency Request Queue</h2>
+          <span class="eyebrow-mono">ANONYMIZED REFERENCES</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ref ID</th>
+                <th>Group</th>
+                <th>Units</th>
+                <th>Hospital &amp; City</th>
+                <th>Urgency</th>
+                <th>Status</th>
+                <th>Logged</th>
+              </tr>
+            </thead>
+            <tbody id="requests-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- F. Donor Network -->
+  <section class="section-band" id="donor-network" style="border-top: 1px solid var(--line);">
+    <div class="container">
+      <div class="eyebrow-mono" style="margin-bottom: 0.5rem;">VOLUNTARY DONOR NETWORK</div>
+      <h2 class="display-lg" style="margin-bottom: 1.5rem;">Donor Registration &amp; Consent-Protected Discovery</h2>
+
+      <div class="grid-2" style="grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);">
+        <form class="panel" id="donor-reg-form" novalidate>
+          <h3 class="panel-title">Register Voluntary Donor (Demo)</h3>
+          <div class="field-group">
+            <label for="donor-name">Display Name / Initials</label>
+            <input id="donor-name" type="text" class="field-input" placeholder="e.g., Meera K." required />
+          </div>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="donor-group">Blood Group</label>
+              <select id="donor-group" class="control-select" data-populate="groups"></select>
+            </div>
+            <div class="field-group">
+              <label for="donor-city">City</label>
+              <select id="donor-city" class="control-select" data-populate="cities"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="donor-avail">Availability Status</label>
+              <select id="donor-avail" class="control-select">
+                <option value="true" selected>Available to Donate</option>
+                <option value="false">In Cooling Period</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="donor-pref">Contact Preference</label>
+              <select id="donor-pref" class="control-select">
+                <option value="SMS & Portal Alert">SMS &amp; Portal Alert</option>
+                <option value="Hospital Portal Only">Hospital Portal Only</option>
+                <option value="Verified Call / SMS">Verified Call / SMS</option>
+              </select>
+            </div>
+          </div>
+          <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.82rem;color:var(--text-secondary);">
+            <input id="donor-consent" type="checkbox" style="margin-top:3px;" />
+            <span>I consent to display my preferred alert channel to verified hospitals (leave unchecked to mask contact details).</span>
+          </label>
+          <div class="field-error" id="donor-error"></div>
+          <button type="submit" id="donor-submit-btn" class="btn btn-primary" style="width: 100%;">Send Inquiry</button>
+          <div id="donor-confirmation" style="display:none;padding:12px;border-radius:8px;border:1px solid var(--mint);background:rgba(46,196,182,0.12);font-size:0.85rem;"></div>
+        </form>
+
+        <div>
+          <div class="grid-2" style="margin-bottom: 14px;">
+            <div class="media-card">
+              <div class="media-frame">
+                <img src="./assets/images/donor-camp.jpg" alt="Barcoded blood collection bag during a voluntary blood donation drive" />
+              </div>
+              <div class="media-caption">
+                <div>
+                  <div class="eyebrow-mono">BLOOD COLLECTION DRIVE · PUBLIC DOMAIN (U.S. AIR FORCE)</div>
+                  <strong>Voluntary Blood Collection</strong>
+                </div>
+              </div>
+            </div>
+            <div class="media-card">
+              <div class="media-frame">
+                <img src="./assets/images/donor-platelets.jpg" alt="Voluntary donor donating platelets at a clinical blood donation center" />
+              </div>
+              <div class="media-caption">
+                <div>
+                  <div class="eyebrow-mono">APHERESIS &amp; PLATELETS · CC BY 4.0 (R. HENRIK NILSSON)</div>
+                  <strong>Voluntary Platelet Donors</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom: 14px;">
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="donor-filter-city">Filter Donors by City</label>
+                <select id="donor-filter-city" class="control-select" data-populate="cities">
+                  <option value="ALL" selected>All Cities</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="donor-filter-group">Filter Donors by Blood Group</label>
+                <select id="donor-filter-group" class="control-select" data-populate="groups">
+                  <option value="ALL" selected>All Blood Groups</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2" id="donor-list-grid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="shared-footer"></div>
+</body>
+</html>

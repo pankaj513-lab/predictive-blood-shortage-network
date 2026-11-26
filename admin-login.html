@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login (Supabase Auth) — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+</head>
+<body data-page="admin">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>SUPABASE ADMIN AUTH</span></div>
+        <h1 class="display-xl">Authorized Admin Portal</h1>
+      </div>
+      <div>
+        <p class="lead-lg">
+          Authenticate via Supabase Auth to manage blood requests, donor &amp; contact inquiries, live blood inventory, and published reports.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="container" style="max-width: 540px;">
+      <div class="panel" id="supabase-config-err" style="display:none; border-color: var(--red); margin-bottom: 16px;">
+        <div class="eyebrow-mono" style="color: var(--red-bright);">SUPABASE CONFIG NOTICE</div>
+        <p class="lead-lg" id="supabase-config-err-msg" style="font-size: 0.9rem;">
+          Start the server with <code>start_pbsn.bat</code> (serving <code>.env</code> via <code>/api/config</code>).
+        </p>
+      </div>
+
+      <!-- Standard Supabase Auth Login Form -->
+      <form class="panel" id="admin-login-form" novalidate>
+        <div class="panel-head">
+          <h2 class="panel-title">Administrator Sign In</h2>
+          <span class="eyebrow-mono">SUPABASE AUTH · RLS PROTECTED</span>
+        </div>
+        <div class="field-group">
+          <label for="login-email">Email Address</label>
+          <input id="login-email" type="email" class="field-input" autocomplete="username" placeholder="Enter your admin email" required />
+        </div>
+        <div class="field-group">
+          <label for="login-pass">Password</label>
+          <input id="login-pass" type="password" class="field-input" autocomplete="current-password" placeholder="Enter your password" required />
+        </div>
+        <div class="field-error" id="login-error"></div>
+        <button type="submit" id="login-btn" class="btn btn-red" style="width: 100%;">Sign In to Admin Panel</button>
+        <div style="text-align:center;margin-top:6px;">
+          <button type="button" id="toggle-bootstrap-btn" class="btn btn-ghost btn-sm">First-Time Setup? Register Initial Admin →</button>
+        </div>
+      </form>
+
+      <!-- First-Run Admin Bootstrap (Enforced by RLS: succeeds ONLY when public.admin_users has 0 rows) -->
+      <form class="panel" id="admin-setup-form" style="display:none; margin-top: 14px;" novalidate>
+        <div class="panel-head">
+          <h2 class="panel-title">Initialize First Administrator</h2>
+          <span class="badge badge-low">RLS Guarded</span>
+        </div>
+        <p class="lead-lg" style="font-size: 0.85rem;">
+          Creates your Supabase Auth account and registers the initial admin row in <code>public.admin_users</code> (blocked by RLS once an admin exists).
+        </p>
+        <div class="field-group">
+          <label for="setup-name">Full Name</label>
+          <input id="setup-name" type="text" class="field-input" placeholder="e.g., Dr. Ananya Verma" required />
+        </div>
+        <div class="field-group">
+          <label for="setup-email">Administrator Email</label>
+          <input id="setup-email" type="email" class="field-input" placeholder="admin@hospital.org" required />
+        </div>
+        <div class="field-group">
+          <label for="setup-pass">Password (min 8 characters)</label>
+          <input id="setup-pass" type="password" class="field-input" minlength="8" required />
+        </div>
+        <div class="field-error" id="setup-error"></div>
+        <button type="submit" id="setup-btn" class="btn btn-primary" style="width: 100%;">Create Admin Account &amp; Sign In</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="shared-footer"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      window.PBSN_CHROME.renderSharedChrome();
+
+      try {
+        const existing = await window.PBSN_SVC.getAdminSession();
+        if (existing) {
+          window.location.href = "./admin.html";
+          return;
+        }
+      } catch (err) {
+        document.getElementById("supabase-config-err").style.display = "flex";
+        document.getElementById("supabase-config-err-msg").textContent = err.message;
+      }
+
+      const setupForm = document.getElementById("admin-setup-form");
+      document.getElementById("toggle-bootstrap-btn").addEventListener("click", () => {
+        setupForm.style.display = setupForm.style.display === "none" ? "flex" : "none";
+      });
+
+      document.getElementById("admin-login-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("login-error");
+        const btn = document.getElementById("login-btn");
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-pass").value;
+
+        if (!email.includes("@") || !password) {
+          errEl.textContent = "Please enter both email and password.";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Signing in via Supabase...";
+
+        try {
+          await window.PBSN_SVC.signInAdmin(email, password);
+          window.location.href = "./admin.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Authentication failed.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sign In to Admin Panel";
+        }
+      });
+
+      setupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("setup-error");
+        const btn = document.getElementById("setup-btn");
+        const fullName = document.getElementById("setup-name").value.trim();
+        const email = document.getElementById("setup-email").value.trim();
+        const password = document.getElementById("setup-pass").value;
+
+        if (fullName.length < 2 || !email.includes("@") || password.length < 8) {
+          errEl.textContent = "Enter name, valid email, and password (min 8 chars).";
+          return;
+        }
+        errEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Registering Admin...";
+
+        try {
+          await window.PBSN_SVC.bootstrapFirstAdmin(fullName, email, password);
+          window.location.href = "./admin.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Bootstrap failed.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Create Admin Account & Sign In";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About, Architecture &amp; Team — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/data.js"></script>
+  <script defer src="./src/engine.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/animations.js"></script>
+  <script defer src="./src/app.js"></script>
+</head>
+<body data-page="about">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>ABOUT &amp; ARCHITECTURE</span></div>
+        <h1 class="display-xl">Predict Shortages. Connect Donors. Save Lives.</h1>
+      </div>
+      <div>
+        <p class="lead-lg">
+          Built to transform reactive hospital blood sourcing into proactive, AI-guided supply coordination across regional healthcare networks.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- I. About the Project -->
+  <section class="section-band">
+    <div class="container grid-2" style="margin-bottom: 22px;">
+      <div class="media-card">
+        <div class="media-frame">
+          <img src="./assets/images/about-awareness.jpg" alt="Voluntary blood donation awareness inside a blood center" />
+        </div>
+        <div class="media-caption">
+          <div>
+            <div class="eyebrow-mono">BLOOD DONATION AWARENESS · CC BY 2.0 (SEATTLE CITY COUNCIL)</div>
+            <strong>Supporting Voluntary Blood Donation Across Regions</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="media-card">
+        <div class="media-frame">
+          <img src="./assets/images/about-team.jpg" alt="Blood bank healthcare specialist preparing a voluntary blood donor" />
+        </div>
+        <div class="media-caption">
+          <div>
+            <div class="eyebrow-mono">CLINICAL BLOOD BANK CARE · PUBLIC DOMAIN (U.S. NAVY)</div>
+            <strong>Coordinated Medical &amp; Blood Bank Operations</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container grid-3" style="margin-bottom: 18px;">
+      <div class="panel">
+        <div class="eyebrow-mono">PROJECT MISSION</div>
+        <h2 class="display-md">Zero Preventable Blood Stockouts</h2>
+        <p class="lead-lg" style="font-size: 0.9rem;">
+          Empower blood banks, hospitals, and voluntary donors with advance shortage intelligence so critical trauma and surgical care never waits for emergency phone trees.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="eyebrow-mono">PROBLEM STATEMENT</div>
+        <h2 class="display-md">Fragmented &amp; Reactive Supply</h2>
+        <p class="lead-lg" style="font-size: 0.9rem;">
+          Isolated hospital inventories miss seasonal donation dips, regional demand spikes, and 5-day platelet expiry windows—causing simultaneous shortages and wastage.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="eyebrow-mono">PROPOSED SOLUTION</div>
+        <h2 class="display-md">Predictive Coordination Network</h2>
+        <p class="lead-lg" style="font-size: 0.9rem;">
+          Centralizes multi-hospital supply signals, predicts blood-group deficits days ahead, and recommends optimal ABO/Rh inter-bank redistributions.
+        </p>
+      </div>
+    </div>
+
+    <div class="container grid-3">
+      <div class="panel">
+        <div class="eyebrow-mono">INNOVATION</div>
+        <h3 class="display-md" style="font-size: 1.2rem;">Forecasting + FEFO Routing</h3>
+        <p class="lead-lg" style="font-size: 0.88rem;">
+          Combines multi-horizon demand forecasting with First-Expired, First-Out (FEFO) compatibility matching across real city corridors.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="eyebrow-mono">SOCIAL IMPACT</div>
+        <h3 class="display-md" style="font-size: 1.2rem;">Faster Trauma &amp; Rural Care</h3>
+        <p class="lead-lg" style="font-size: 0.88rem;">
+          Reduces search latency for rare groups (O-, AB-, B-) while cutting avoidable component expiry through proactive sharing.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="eyebrow-mono">FUTURE SCOPE</div>
+        <h3 class="display-md" style="font-size: 1.2rem;">e-RaktKosh &amp; Cold-Chain IoT</h3>
+        <p class="lead-lg" style="font-size: 0.88rem;">
+          Direct HL7/FHIR hospital integration, refrigerated IoT temperature telemetry, and Scikit-learn / Prophet regional training pipelines.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. AI & Machine Learning Architecture -->
+  <section class="section-band" id="architecture" style="border-top: 1px solid var(--line);">
+    <div class="container">
+      <div class="eyebrow-mono" style="margin-bottom: 0.6rem;">PRODUCTION-READY SYSTEM DESIGN</div>
+      <h2 class="display-lg" style="margin-bottom: 1.75rem;">Modular AI &amp; FastAPI Integration Architecture</h2>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3 class="panel-title">Target Production Stack</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <tbody>
+                <tr><td><strong>Frontend</strong></td><td>Modular UI (browser-native demo active now; React/Vite-compatible API contract)</td></tr>
+                <tr><td><strong>Backend API</strong></td><td>Python + FastAPI (<code>backend/main.py</code> included in repository)</td></tr>
+                <tr><td><strong>ML Pipeline</strong></td><td>Python, Pandas, NumPy, Scikit-learn (<code>backend/model.py</code>)</td></tr>
+                <tr><td><strong>Database</strong></td><td>PostgreSQL / MySQL for hospital inventory logs &amp; requests</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="panel-title">REST API Endpoints Contract</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Method &amp; Route</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>POST /api/predict-shortage</code></td><td>Runs demand &amp; shortage risk prediction</td></tr>
+                <tr><td><code>GET /api/inventory</code></td><td>Aggregates multi-hospital ABO/Rh counts</td></tr>
+                <tr><td><code>POST /api/blood-requests</code></td><td>Logs anonymized emergency blood requests</td></tr>
+                <tr><td><code>GET /api/blood-banks</code></td><td>Returns regional blood bank directory &amp; coords</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- J. Team & Contact -->
+  <section class="section-band" id="team" style="border-top: 1px solid var(--line);">
+    <div class="container">
+      <div class="eyebrow-mono" style="margin-bottom: 0.6rem;">HACKATHON TEAM</div>
+      <h2 class="display-lg" style="margin-bottom: 1.5rem;">Team &amp; Project Contact</h2>
+      <div class="team-grid" style="margin-bottom: 20px;">
+        <div class="team-card">
+          <div class="team-avatar-placeholder" aria-label="Editable profile placeholder for Team Member 1">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+            <span class="eyebrow-mono">PHOTO PLACEHOLDER · M1</span>
+          </div>
+          <div class="eyebrow-mono">AI / ML LEAD</div>
+          <strong style="display:block;font-family:var(--font-display);font-size:1.05rem;margin:4px 0;">[Member 1 Name]</strong>
+          <span style="font-size:0.82rem;color:var(--text-muted);">Time-Series Forecasting &amp; Risk Modeling</span>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar-placeholder" aria-label="Editable profile placeholder for Team Member 2">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+            <span class="eyebrow-mono">PHOTO PLACEHOLDER · M2</span>
+          </div>
+          <div class="eyebrow-mono">FULL-STACK LEAD</div>
+          <strong style="display:block;font-family:var(--font-display);font-size:1.05rem;margin:4px 0;">[Member 2 Name]</strong>
+          <span style="font-size:0.82rem;color:var(--text-muted);">FastAPI Backend &amp; Hospital Sync APIs</span>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar-placeholder" aria-label="Editable profile placeholder for Team Member 3">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+            <span class="eyebrow-mono">PHOTO PLACEHOLDER · M3</span>
+          </div>
+          <div class="eyebrow-mono">PRODUCT &amp; UX</div>
+          <strong style="display:block;font-family:var(--font-display);font-size:1.05rem;margin:4px 0;">[Member 3 Name]</strong>
+          <span style="font-size:0.82rem;color:var(--text-muted);">Healthcare Interface &amp; Emergency Flow</span>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar-placeholder" aria-label="Editable profile placeholder for Team Member 4">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+            <span class="eyebrow-mono">PHOTO PLACEHOLDER · M4</span>
+          </div>
+          <div class="eyebrow-mono">DATA &amp; GEO MAPS</div>
+          <strong style="display:block;font-family:var(--font-display);font-size:1.05rem;margin:4px 0;">[Member 4 Name]</strong>
+          <span style="font-size:0.82rem;color:var(--text-muted);">Regional Analytics &amp; Leaflet Mapping</span>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="panel">
+          <div class="eyebrow-mono">TEAM IDENTITY</div>
+          <h3 class="display-md" style="font-size: 1.25rem;">Team PBSN Innovators</h3>
+          <p class="lead-lg" style="font-size: 0.88rem;">
+            <strong>Organization:</strong> [Your College / Institute Name]<br />
+            <strong>Contact Email:</strong> team.pbsn@example.edu<br />
+            <strong>Track:</strong> AI Healthcare &amp; Emergency Response
+          </p>
+        </div>
+        <div class="panel">
+          <div class="eyebrow-mono">CORE MEMBERS (PLACEHOLDERS)</div>
+          <p class="lead-lg" style="font-size: 0.88rem;">
+            • <strong>[Member 1]</strong> — AI/ML &amp; Time-Series Forecasting<br />
+            • <strong>[Member 2]</strong> — Full-Stack &amp; FastAPI Engineering<br />
+            • <strong>[Member 3]</strong> — Product Design &amp; Healthcare UX<br />
+            • <strong>[Member 4]</strong> — Data Visualization &amp; Geo Mapping
+          </p>
+        </div>
+        <div class="panel">
+          <div class="eyebrow-mono">BLOOD DONATION CAMPAIGN &amp; PARTNERSHIP INQUIRY</div>
+          <h3 class="display-md" style="font-size: 1.2rem;">Coordinate a Drive or Hospital Onboarding</h3>
+          <form id="campaign-inquiry-form" style="display:flex;flex-direction:column;gap:10px;" novalidate>
+            <div class="field-group">
+              <label for="camp-org">Hospital / Organization Name</label>
+              <input id="camp-org" type="text" class="field-input" placeholder="e.g., City Red Cross / College NSS" required />
+            </div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="camp-city">City</label>
+                <select id="camp-city" class="control-select" data-populate="cities"></select>
+              </div>
+              <div class="field-group">
+                <label for="camp-group">Focus Blood Group</label>
+                <select id="camp-group" class="control-select" data-populate="groups">
+                  <option value="ALL" selected>All Groups</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="camp-contact">Official Contact Email / Phone</label>
+              <input id="camp-contact" type="text" class="field-input" placeholder="e.g., coordinator@institute.edu" required />
+            </div>
+            <div class="field-error" id="camp-error"></div>
+            <button type="submit" id="camp-submit-btn" class="btn btn-red btn-sm" style="width: 100%;">Send Inquiry</button>
+            <div id="camp-confirmation" style="display:none;padding:10px;border-radius:8px;border:1px solid var(--mint);background:rgba(46,196,182,0.12);font-size:0.82rem;"></div>
+          </form>
+          <p class="eyebrow-mono" style="margin:4px 0 0;">
+            Or click <strong>Demo Guide</strong> in the top bar for the 2–3 minute presentation flow.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Photography Licenses & Attributions -->
+  <section class="section-band" style="border-top: 1px solid var(--line); padding-top: 2.5rem; padding-bottom: 2.5rem;">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Wikimedia Commons Photography Licenses &amp; Credits</h3>
+          <span class="eyebrow-mono">LOCAL ASSETS · VERIFIED OPEN LICENSES</span>
+        </div>
+        <p class="lead-lg" style="font-size: 0.84rem;">
+          Hero Blood Center &amp; Platelet Donation: R. Henrik Nilsson (CC BY 4.0) · Navi Mumbai Pathology Labs: Goleisureintl (CC BY 4.0) · Donated Blood Bags: Antonio from Mijas, España (CC BY-SA 2.0) · Blood Donation Awareness: Seattle City Council (CC BY 2.0) · Blood Drive, Blood Collection Bag, Lab Techs &amp; Blood Bank Staff: U.S. Navy / U.S. Air Force (Public Domain). Full file list in <code>assets/images/ATTRIBUTIONS.md</code>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div id="shared-footer"></div>
+</body>
+</html>

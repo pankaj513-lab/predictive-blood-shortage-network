@@ -1,0 +1,28 @@
+# Dependencies & Build Outputs
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+
+# Environment & Secrets (keep .env.example!)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*service_role*
+*credentials*.json
+
+# Python / Backend Artifacts & Local DB
+__pycache__/
+*.py[cod]
+backend/.session_secret
+backend/*.db
+backend/uploads/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/

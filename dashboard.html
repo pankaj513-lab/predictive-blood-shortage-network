@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Intelligence Dashboard &amp; Predictor — PBSN</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/data.js"></script>
+  <script defer src="./src/engine.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/animations.js"></script>
+  <script defer src="./src/app.js"></script>
+</head>
+<body data-page="dashboard">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>AI INTELLIGENCE DASHBOARD</span></div>
+        <h1 class="display-xl">Predictive Blood Supply Monitoring</h1>
+      </div>
+      <div>
+        <p class="lead-lg" style="margin-bottom: 1rem;">
+          Filter real-time demo telemetry across Indian metro hospitals, analyze demand trends, and run interactive shortage risk predictions.
+        </p>
+        <div class="cta-row">
+          <span class="demo-tag">Simulated Demo Data</span>
+          <button class="btn btn-ghost btn-sm" id="reset-demo-btn">Reset Demo Baseline</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B. AI Intelligence Dashboard -->
+  <section class="section-band">
+    <div class="container">
+      <div class="cc-controls">
+        <div class="field-group">
+          <label for="flt-group">Blood Group</label>
+          <select id="flt-group" class="control-select" data-populate="groups">
+            <option value="ALL" selected>All Groups (A+ to O-)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="flt-region">City / Region</label>
+          <select id="flt-region" class="control-select" data-populate="cities">
+            <option value="ALL" selected>All Regions</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="flt-hospital">Hospital / Blood Bank</label>
+          <select id="flt-hospital" class="control-select" data-populate="hospitals">
+            <option value="ALL" selected>All Connected Hospitals</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="flt-days">Forecast Date Range</label>
+          <select id="flt-days" class="control-select">
+            <option value="7" selected>Next 7 Days</option>
+            <option value="14">Next 14 Days</option>
+            <option value="30">Next 30 Days</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="flt-season">Seasonal Trend</label>
+          <select id="flt-season" class="control-select">
+            <option value="normal" selected>Normal Baseline</option>
+            <option value="monsoon">Monsoon / Dengue Surge</option>
+            <option value="summer">Summer / Vacation Dip</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="kpi-strip">
+        <div class="kpi-card">
+          <div class="eyebrow-mono">TOTAL BLOOD UNITS AVAILABLE</div>
+          <div class="kpi-value" id="kpi-units">—</div>
+          <div class="kpi-sub">Across filtered hospitals (demo)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">PROJECTED DAILY DEMAND</div>
+          <div class="kpi-value" id="kpi-demand">—</div>
+          <div class="kpi-sub">Adjusted for seasonal factors</div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">CRITICAL &amp; HIGH ALERTS</div>
+          <div class="kpi-value red" id="kpi-alerts">—</div>
+          <div class="kpi-sub">Blood-group slots needing action</div>
+        </div>
+        <div class="kpi-card">
+          <div class="eyebrow-mono">REGIONAL HUBS MONITORED</div>
+          <div class="kpi-value mint" id="kpi-banks">—</div>
+          <div class="kpi-sub">Real metro hospital telemetry</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 18px;">
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Blood Demand &amp; Inventory Forecast</h2>
+            <span class="eyebrow-mono">BLUE: HISTORY · RED: FORECAST</span>
+          </div>
+          <div class="chart-box">
+            <svg id="forecast-svg" class="chart-svg" viewBox="0 0 680 220" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Weekly &amp; Monthly Demand Trends</h2>
+            <select id="trend-mode-toggle" class="control-select" style="height:32px;font-size:0.78rem;">
+              <option value="weekly" selected>Weekly Trend</option>
+              <option value="monthly">Monthly Trend</option>
+            </select>
+          </div>
+          <div class="chart-box">
+            <svg id="trend-svg" class="chart-svg" viewBox="0 0 520 190" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 18px;">
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Blood Group Availability</h2>
+            <span class="eyebrow-mono">ALL 8 ABO/RH GROUPS</span>
+          </div>
+          <div class="bg-bar-list" id="bg-availability-bars"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Hospital Demand &amp; Regional Inventory Comparison</h2>
+            <span class="eyebrow-mono">BY REAL FACILITY</span>
+          </div>
+          <div class="bg-bar-list" id="hospital-comparison-list"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Critical Shortage Alerts Queue</h2>
+          <a href="./network.html" class="btn btn-ghost btn-sm">View Map &amp; Transfer Routes →</a>
+        </div>
+        <div id="dashboard-alerts-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C. AI Blood Shortage Prediction (Dedicated Core Feature) -->
+  <section class="section-band" id="predictor" style="border-top: 1px solid var(--line); background: radial-gradient(60% 45% at 50% 0%, rgba(230, 57, 70, 0.08), transparent 60%);">
+    <div class="container">
+      <div class="eyebrow-pill"><span class="dot-red"></span> CORE FEATURE · TRANSPARENT DEMO PREDICTION ENGINE</div>
+      <h2 class="display-lg" style="margin-bottom: 0.75rem;">AI Blood Shortage Prediction</h2>
+      <p class="lead-lg" style="max-width: 48rem; margin-bottom: 1.75rem;">
+        Configure inventory and demand parameters to run a shortage simulation. Uses a transparent demonstration algorithm (ready to connect to FastAPI <code>POST /api/predict-shortage</code>).
+      </p>
+
+      <div class="grid-2">
+        <form class="panel" id="ai-predictor-form">
+          <h3 class="panel-title">Prediction Parameters</h3>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="pred-group">Blood Group</label>
+              <select id="pred-group" class="control-select" data-populate="groups"></select>
+            </div>
+            <div class="field-group">
+              <label for="pred-region">City / Region</label>
+              <select id="pred-region" class="control-select" data-populate="cities"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="pred-inventory">Current Inventory (Units)</label>
+              <input id="pred-inventory" type="number" min="0" max="2000" value="18" class="field-input" required />
+            </div>
+            <div class="field-group">
+              <label for="pred-period">Time Period</label>
+              <select id="pred-period" class="control-select">
+                <option value="7" selected>7 Days</option>
+                <option value="14">14 Days</option>
+                <option value="30">30 Days</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="pred-hist-demand">Historical Demand (Units/Day)</label>
+              <input id="pred-hist-demand" type="number" min="1" max="500" step="0.5" value="6.5" class="field-input" required />
+            </div>
+            <div class="field-group">
+              <label for="pred-exp-demand">Expected Demand (Units/Day)</label>
+              <input id="pred-exp-demand" type="number" min="1" max="500" step="0.5" value="9.0" class="field-input" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-red" style="width: 100%;">Run AI Prediction</button>
+        </form>
+
+        <div class="panel" id="prediction-output">
+          <div class="eyebrow-mono">PREDICTION OUTPUT PANEL</div>
+          <h3 class="display-md">Ready to simulate shortage risk</h3>
+          <p class="lead-lg" style="font-size: 0.92rem;">
+            Select parameters on the left (e.g., <strong>O-</strong> in <strong>New Delhi</strong> with <strong>18 units</strong>) and click <strong>Run AI Prediction</strong> to calculate forecasted demand, shortage period, risk level, and recommended preventive actions.
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="badge badge-low">Low Risk</span>
+            <span class="badge badge-moderate">Moderate Risk</span>
+            <span class="badge badge-high">High Risk</span>
+            <span class="badge badge-critical">Critical Risk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- G. AI Insights and Recommendations -->
+  <section class="section-band" style="border-top: 1px solid var(--line);">
+    <div class="container">
+      <div class="panel-head" style="margin-bottom: 1.5rem;">
+        <div>
+          <div class="eyebrow-mono" style="margin-bottom: 0.4rem;">AUTOMATED SUPPLY INTELLIGENCE</div>
+          <h2 class="display-lg" style="margin-bottom: 0;">AI Insights for Smarter Blood Supply Management</h2>
+        </div>
+        <span class="demo-tag">Simulated Recommendations — Verify Clinically</span>
+      </div>
+      <div class="grid-2" id="ai-insights-grid"></div>
+    </div>
+  </section>
+
+  <div id="shared-footer"></div>
+</body>
+</html>

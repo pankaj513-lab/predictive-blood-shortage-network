@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Published Reports — PBSN Blood Shortage Network</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/reportsPublic.js"></script>
+</head>
+<body data-page="reports">
+  <div id="shared-header"></div>
+
+  <section class="page-hero">
+    <div class="container page-hero-grid">
+      <div>
+        <div class="breadcrumb"><a href="./index.html">PBSN</a> / <span>PUBLIC REPORTS</span></div>
+        <h1 class="display-xl">Published Shortage &amp; Analytics Reports</h1>
+      </div>
+      <div>
+        <p class="lead-lg" style="margin-bottom: 1rem;">
+          Official blood shortage forecasts, regional availability audits, and hospital network briefs published by PBSN administrators.
+        </p>
+        <a href="./admin-login.html" class="btn btn-ghost btn-sm">Administrator Portal →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="container">
+      <div class="cc-controls" style="grid-template-columns: 1.5fr 1fr;">
+        <div class="field-group">
+          <label for="pub-search">Search Published Reports</label>
+          <input id="pub-search" type="search" class="field-input" placeholder="Search by title, region, or blood group..." />
+        </div>
+        <div class="field-group">
+          <label for="pub-cat">Filter by Category</label>
+          <select id="pub-cat" class="control-select">
+            <option value="ALL" selected>All Report Categories</option>
+            <option value="AI Blood Shortage Prediction Reports">AI Blood Shortage Prediction Reports</option>
+            <option value="Blood Inventory Reports">Blood Inventory Reports</option>
+            <option value="Blood Demand Forecast Reports">Blood Demand Forecast Reports</option>
+            <option value="Regional Blood Availability Reports">Regional Blood Availability Reports</option>
+            <option value="Emergency Blood Request Reports">Emergency Blood Request Reports</option>
+            <option value="Hospital Network Reports">Hospital Network Reports</option>
+            <option value="Research and Project Reports">Research and Project Reports</option>
+            <option value="General Reports">General Reports</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="report-cards-grid" id="public-reports-grid">
+        <div class="skeleton-shimmer" style="height: 320px;"></div>
+        <div class="skeleton-shimmer" style="height: 320px;"></div>
+        <div class="skeleton-shimmer" style="height: 320px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Public Report Reader Modal -->
+  <div class="modal-backdrop" id="public-report-modal" role="dialog" aria-modal="true" aria-label="Report Reader">
+    <div class="modal-card" style="max-height: 88svh; overflow-y: auto;">
+      <div class="panel-head" style="margin-bottom: 12px;">
+        <div>
+          <div class="eyebrow-mono" id="pub-modal-meta">—</div>
+          <h2 class="display-md" id="pub-modal-title" style="margin: 4px 0 0;">—</h2>
+        </div>
+        <button class="icon-btn" id="close-pub-modal">✕ Close</button>
+      </div>
+      <div id="pub-modal-cover" style="margin-bottom: 14px;"></div>
+      <p class="lead-lg" id="pub-modal-desc" style="font-size: 0.94rem; margin-bottom: 12px;"></p>
+      <div id="pub-modal-content" style="white-space: pre-wrap; padding: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 0.88rem; line-height: 1.65; margin-bottom: 14px;"></div>
+      <div id="pub-modal-actions" class="cta-row"></div>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+</body>
+</html>

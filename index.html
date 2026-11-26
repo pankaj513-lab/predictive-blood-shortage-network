@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PBSN — Predict Shortages. Connect Donors. Save Lives.</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script defer src="./src/supabaseClient.js"></script>
+  <script defer src="./src/supabaseService.js"></script>
+  <script defer src="./src/data.js"></script>
+  <script defer src="./src/engine.js"></script>
+  <script defer src="./src/sharedChrome.js"></script>
+  <script defer src="./src/animations.js"></script>
+  <script defer src="./src/reportsPublic.js"></script>
+  <script defer src="./src/app.js"></script>
+</head>
+<body data-page="overview">
+  <div id="shared-header"></div>
+
+  <!-- A. Landing Page Hero -->
+  <section id="hero">
+    <div class="hero-visual">
+      <img class="hero-photo" src="./assets/images/hero-blood-center.jpg" alt="Real blood donation center interior where voluntary donors and healthcare staff coordinate blood collection" />
+      <div class="hero-base-glow"></div>
+      <div class="hero-masked-corridor"></div>
+      <canvas id="hero-canvas"></canvas>
+      <div class="hero-vignette"></div>
+    </div>
+
+    <div class="container hero-content">
+      <div class="hero-grid">
+        <div class="hero-title-wrap">
+          <div class="eyebrow-pill"><span class="dot-red"></span> PREDICTIVE HEALTHCARE INTELLIGENCE · PBSN</div>
+          <h1 class="display-xl">Predict Blood Shortages<br />Before They Happen.</h1>
+        </div>
+        <div class="hero-side">
+          <p class="lead-lg">
+            An intelligent blood supply network that uses predictive analytics to anticipate shortages, optimize blood inventory, and connect hospitals with available blood resources.
+          </p>
+          <div class="cta-row">
+            <a href="./dashboard.html" class="btn btn-red">Explore AI Dashboard</a>
+            <a href="#how-it-works" class="btn btn-ghost">How It Works →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Live Dashboard Preview Strip (Clearly Marked Demo Data) -->
+      <div class="hero-preview-strip">
+        <div class="preview-stat">
+          <div class="eyebrow-mono">BLOOD UNITS AVAILABLE (DEMO)</div>
+          <div class="preview-val tabular" id="prev-units">—</div>
+        </div>
+        <div class="preview-stat">
+          <div class="eyebrow-mono">HOSPITALS CONNECTED</div>
+          <div class="preview-val tabular" id="prev-hospitals">8 Real Hubs</div>
+        </div>
+        <div class="preview-stat">
+          <div class="eyebrow-mono">ACTIVE SHORTAGE ALERTS</div>
+          <div class="preview-val tabular" style="color: var(--red-bright);" id="prev-alerts">—</div>
+        </div>
+        <div class="preview-stat">
+          <div class="eyebrow-mono">DEMO MODEL BACKTEST</div>
+          <div class="preview-val tabular" style="color: var(--mint);">94.2% <span class="demo-tag" style="vertical-align: middle;">Demo</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sticky 3D Scrollytelling Network Visualization -->
+  <section id="network-stack">
+    <div class="sticky-stage">
+      <canvas id="scrolly-canvas"></canvas>
+    </div>
+    <div class="container scrolly-articles">
+      <article class="scrolly-step">
+        <div class="scrolly-card">
+          <div class="eyebrow-pill"><span class="dot-red"></span> 01 · Real-Time Supply Signal</div>
+          <h2 class="display-lg">Connected across AIIMS, KEM, Manipal, Apollo &amp; 4 metro hubs.</h2>
+          <p class="lead-lg" style="margin-bottom: 1.25rem;">
+            PBSN turns fragmented blood bank spreadsheets into a unified, live supply pulse spanning New Delhi, Mumbai, Bengaluru, Chennai, Hyderabad, Pune, Kolkata, and Ahmedabad.
+          </p>
+          <a href="./network.html" class="btn btn-ghost">Open Interactive Map →</a>
+        </div>
+      </article>
+
+      <article class="scrolly-step">
+        <div class="scrolly-card">
+          <div class="eyebrow-pill"><span class="dot-red"></span> 02 · Early Shortage Detection</div>
+          <h2 class="display-lg">Anticipate rare ABO/Rh deficits days in advance.</h2>
+          <p class="lead-lg" style="margin-bottom: 1.25rem;">
+            Analyzes historical consumption, seasonal monsoon/summer drops, and hospital demand trajectories to flag Critical &amp; High Risk buffers early.
+          </p>
+          <a href="./dashboard.html#predictor" class="btn btn-red">Run AI Prediction →</a>
+        </div>
+      </article>
+
+      <article class="scrolly-step">
+        <div class="scrolly-card">
+          <div class="eyebrow-pill"><span class="dot-red"></span> 03 · Coordinated Response</div>
+          <h2 class="display-lg">Predict Shortages. Connect Donors. Save Lives.</h2>
+          <p class="lead-lg" style="margin-bottom: 1.25rem;">
+            Links regional hospitals, voluntary donors, and blood banks with automated shortage alerts and emergency blood request workflows.
+          </p>
+          <a href="./requests-donors.html" class="btn btn-primary">Emergency &amp; Donor Portal</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- H. How It Works (6-Step Visual Workflow) -->
+  <section class="section-band" id="how-it-works">
+    <div class="container">
+      <div class="eyebrow-mono" style="margin-bottom: 0.6rem;">6-STAGE INTELLIGENCE PIPELINE</div>
+      <h2 class="display-lg" style="margin-bottom: 2rem;">How PBSN Prevents Preventable Shortages</h2>
+      <div class="workflow-grid">
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/donor-drive.jpg" alt="Voluntary blood donor participating in a clinical blood collection drive" />
+          </div>
+          <div class="step-num">01 / COLLECT</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Inventory &amp; Demand</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Aggregates live ABO/Rh counts and daily hospital consumption.</p>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/lab-mumbai.jpg" alt="Clinical pathology blood testing laboratory in Navi Mumbai analyzing blood samples" />
+          </div>
+          <div class="step-num">02 / ANALYZE</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Seasonal Patterns</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Models monsoon surges, holiday dips, and regional usage spikes.</p>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/blood-bags.jpg" alt="Stored units of donated whole blood and packed red blood cells in cold-chain bags" />
+          </div>
+          <div class="step-num">03 / PREDICT</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Future Requirements</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Forecasts 7–30 day blood demand per city and blood group.</p>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/lab-techs.jpg" alt="Medical laboratory technicians screening and monitoring blood bank units" />
+          </div>
+          <div class="step-num">04 / DETECT</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Shortage Risks</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Classifies Low, Moderate, High, and Critical risk tiers early.</p>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/donor-camp.jpg" alt="Barcoded blood collection bag and scale inside a blood donation drive" />
+          </div>
+          <div class="step-num">05 / ALERT</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Notify Network</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Alerts blood banks, administrators, and consented local donors.</p>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-photo">
+            <img src="./assets/images/about-team.jpg" alt="Healthcare specialist preparing a voluntary donor at a blood bank" />
+          </div>
+          <div class="step-num">06 / PLAN</div>
+          <h3 class="display-md" style="font-size: 1.05rem;">Timely Allocation</h3>
+          <p class="eyebrow-mono" style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:0.82rem;">Supports inter-hospital rebalancing and donor drive scheduling.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Navigation Cards -->
+  <section class="section-band" style="border-top: 1px solid var(--line);">
+    <div class="container grid-4">
+      <a href="./dashboard.html" class="panel">
+        <span class="eyebrow-mono">MODULE 01</span>
+        <strong class="display-md" style="font-size:1.2rem;">AI Dashboard →</strong>
+        <span class="lead-lg" style="font-size:0.85rem;">Multi-city filters, weekly/monthly trends &amp; AI insights.</span>
+      </a>
+      <a href="./dashboard.html#predictor" class="panel">
+        <span class="eyebrow-mono">MODULE 02</span>
+        <strong class="display-md" style="font-size:1.2rem;">Shortage Predictor →</strong>
+        <span class="lead-lg" style="font-size:0.85rem;">Run transparent demo AI predictions &amp; risk scoring.</span>
+      </a>
+      <a href="./network.html" class="panel">
+        <span class="eyebrow-mono">MODULE 03</span>
+        <strong class="display-md" style="font-size:1.2rem;">Interactive Map →</strong>
+        <span class="lead-lg" style="font-size:0.85rem;">Live Leaflet map of 8 real Indian hospitals &amp; transfer arcs.</span>
+      </a>
+      <a href="./requests-donors.html" class="panel">
+        <span class="eyebrow-mono">MODULE 04</span>
+        <strong class="display-md" style="font-size:1.2rem;">Requests &amp; Donors →</strong>
+        <span class="lead-lg" style="font-size:0.85rem;">Send emergency blood inquiries &amp; discover consented donors.</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 7. Published Reports Section (Live from Admin Panel) -->
+  <section class="section-band" style="border-top: 1px solid var(--line);">
+    <div class="container">
+      <div class="panel-head" style="margin-bottom: 1.5rem;">
+        <div>
+          <div class="eyebrow-mono" style="margin-bottom: 0.4rem;">PUBLISHED INTELLIGENCE</div>
+          <h2 class="display-lg" style="margin-bottom: 0;">Latest Blood Shortage &amp; Analytics Reports</h2>
+        </div>
+        <a href="./reports.html" class="btn btn-ghost btn-sm">View All Reports →</a>
+      </div>
+      <div class="report-cards-grid" id="home-published-reports"></div>
+    </div>
+  </section>
+
+  <!-- Public Report Reader Modal (shared with reports.html) -->
+  <div class="modal-backdrop" id="public-report-modal" role="dialog" aria-modal="true" aria-label="Report Reader">
+    <div class="modal-card" style="max-height: 88svh; overflow-y: auto;">
+      <div class="panel-head" style="margin-bottom: 12px;">
+        <div>
+          <div class="eyebrow-mono" id="pub-modal-meta">—</div>
+          <h2 class="display-md" id="pub-modal-title" style="margin: 4px 0 0;">—</h2>
+        </div>
+        <button class="icon-btn" id="close-pub-modal">✕ Close</button>
+      </div>
+      <div id="pub-modal-cover" style="margin-bottom: 14px;"></div>
+      <p class="lead-lg" id="pub-modal-desc" style="font-size: 0.94rem; margin-bottom: 12px;"></p>
+      <div id="pub-modal-content" style="white-space: pre-wrap; padding: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 0.88rem; line-height: 1.65; margin-bottom: 14px;"></div>
+      <div id="pub-modal-actions" class="cta-row"></div>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+</body>
+</html>
