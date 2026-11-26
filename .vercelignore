@@ -1,0 +1,15 @@
+# Exclude local Python backend, local dev scripts, secrets, and git metadata from Vercel builds
+backend/
+dev_server.py
+start_pbsn.bat
+.env
+.env.*
+!.env.example
+.git/
+.vercel/
+*.db
+*.sqlite
+*.pyc
+__pycache__/
+*.log
+.vscode/

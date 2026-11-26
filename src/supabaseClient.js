@@ -14,21 +14,33 @@
     }
 
     const isHttp = window.location.protocol.startsWith("http");
+    const isLocalHost =
+      !isHttp ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
     const candidates = isHttp
-      ? ["/api/config", "http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config"]
-      : ["http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config", "http://127.0.0.1:8000/api/config"];
+      ? isLocalHost
+        ? ["/api/config", "http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config"]
+        : ["/api/config"]
+      : ["http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config"];
 
     let lastErr = null;
     for (const url of candidates) {
       try {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
-          lastErr = new Error(`HTTP ${res.status} from ${url}`);
+          let errBody = "";
+          try {
+            const j = await res.json();
+            if (j && j.error) errBody = j.error;
+          } catch {}
+          lastErr = new Error(errBody || `HTTP ${res.status} from ${url}`);
           continue;
         }
         const cfg = await res.json();
         if (!cfg.VITE_SUPABASE_URL || !cfg.VITE_SUPABASE_ANON_KEY) {
-          lastErr = new Error("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing in .env.");
+          lastErr = new Error("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing in environment config.");
           continue;
         }
         global.__PBSN_ENV__ = cfg;
@@ -39,8 +51,9 @@
     }
 
     throw new Error(
-      `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). ` +
-        `Start PBSN using start_pbsn.bat and open http://localhost:5173/admin-login.html.`
+      isLocalHost
+        ? `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). Start PBSN with start_pbsn.bat and open http://localhost:5173.`
+        : `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel Environment Variables.`
     );
   }
 

@@ -297,22 +297,27 @@
    */
   const API_BASE = "http://localhost:8000/api";
   async function predictWithOptionalBackend(params) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 900);
-      const res = await fetch(`${API_BASE}/predict-shortage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-        signal: controller.signal
-      });
-      clearTimeout(timer);
-      if (res.ok) {
-        const json = await res.json();
-        return { ...json, source: "FastAPI ML Backend" };
+    const isLocalHost =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    if (isLocalHost) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 900);
+        const res = await fetch(`${API_BASE}/predict-shortage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (res.ok) {
+          const json = await res.json();
+          return { ...json, source: "FastAPI ML Backend" };
+        }
+      } catch (_) {
+        // Backend not running locally — cleanly fall back to transparent demo mode
       }
-    } catch (_) {
-      // Backend not running locally — cleanly fall back to transparent demo mode
     }
     return { ...runDemoPrediction(params), source: "Transparent Demo Engine" };
   }

@@ -61,19 +61,23 @@
   }
 
   async function postInquiry(endpoint, payload) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 900);
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      clearTimeout(timer);
-      if (res.ok) return { storedIn: "FastAPI Backend" };
-    } catch (_) {
-      // Backend offline — seamlessly persist in demo localStorage store
+    const isLocalHost =
+      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (isLocalHost) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 900);
+        const res = await fetch(`http://localhost:8000${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (res.ok) return { storedIn: "FastAPI Backend" };
+      } catch (_) {
+        // Backend offline — seamlessly persist in demo localStorage store
+      }
     }
     return { storedIn: "Demo Data Store" };
   }

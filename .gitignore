@@ -22,7 +22,8 @@ backend/.session_secret
 backend/*.db
 backend/uploads/
 
-# OS & Editor Files
+# Deployment & Local Tools
+.vercel
 .DS_Store
 Thumbs.db
 .vscode/
