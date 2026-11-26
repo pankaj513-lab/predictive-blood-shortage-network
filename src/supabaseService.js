@@ -362,24 +362,35 @@
     return error instanceof Error ? error : new Error(msg || "Authentication error.");
   }
 
+  function getStore(kind) {
+    try {
+      return global[kind] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getOrigin() {
+    return (global.location && global.location.origin) || "http://localhost:5173";
+  }
+
   function applyRememberPreference(rememberMe, { hospitalCode, departmentCode, email }) {
+    const ls = getStore("localStorage");
+    const ss = getStore("sessionStorage");
     if (rememberMe) {
-      localStorage.setItem(
-        "pbsn_dept_remember",
-        JSON.stringify({ hospitalCode, departmentCode, email })
-      );
-      localStorage.removeItem("pbsn_dept_ephemeral_flag");
-      sessionStorage.removeItem("pbsn_dept_ephemeral");
+      ls?.setItem("pbsn_dept_remember", JSON.stringify({ hospitalCode, departmentCode, email }));
+      ls?.removeItem("pbsn_dept_ephemeral_flag");
+      ss?.removeItem("pbsn_dept_ephemeral");
     } else {
-      localStorage.removeItem("pbsn_dept_remember");
-      localStorage.setItem("pbsn_dept_ephemeral_flag", "1");
-      sessionStorage.setItem("pbsn_dept_ephemeral", "1");
+      ls?.removeItem("pbsn_dept_remember");
+      ls?.setItem("pbsn_dept_ephemeral_flag", "1");
+      ss?.setItem("pbsn_dept_ephemeral", "1");
     }
   }
 
   function getRememberedDepartmentFields() {
     try {
-      const raw = localStorage.getItem("pbsn_dept_remember");
+      const raw = getStore("localStorage")?.getItem("pbsn_dept_remember");
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -455,7 +466,7 @@
   async function requestDepartmentPasswordReset(email) {
     const client = await sb();
     const cleanEmail = String(email || "").trim().toLowerCase();
-    const redirectTo = window.location.origin + "/hospital-login.html";
+    const redirectTo = getOrigin() + "/hospital-login.html";
     const { error } = await client.auth.resetPasswordForEmail(cleanEmail, { redirectTo });
     if (error) throw translateSupabaseAuthError(error, "reset");
     return { ok: true };
@@ -469,15 +480,14 @@
   }
 
   async function getDepartmentSession() {
-    if (
-      localStorage.getItem("pbsn_dept_ephemeral_flag") === "1" &&
-      !sessionStorage.getItem("pbsn_dept_ephemeral")
-    ) {
+    const ls = getStore("localStorage");
+    const ss = getStore("sessionStorage");
+    if (ls?.getItem("pbsn_dept_ephemeral_flag") === "1" && !ss?.getItem("pbsn_dept_ephemeral")) {
       try {
         const client = await sb();
         await client.auth.signOut();
       } catch {}
-      localStorage.removeItem("pbsn_dept_ephemeral_flag");
+      ls?.removeItem("pbsn_dept_ephemeral_flag");
       return null;
     }
 
@@ -512,8 +522,8 @@
   }
 
   async function signOutDepartment() {
-    localStorage.removeItem("pbsn_dept_ephemeral_flag");
-    sessionStorage.removeItem("pbsn_dept_ephemeral");
+    getStore("localStorage")?.removeItem("pbsn_dept_ephemeral_flag");
+    getStore("sessionStorage")?.removeItem("pbsn_dept_ephemeral");
     const client = await sb();
     await client.auth.signOut();
   }
@@ -798,7 +808,7 @@
       if (/not yet enabled/i.test(checkErr.message || "")) throw checkErr;
     }
 
-    const redirectTo = window.location.origin + "/user-dashboard.html";
+    const redirectTo = getOrigin() + "/user-dashboard.html";
     const { data, error } = await client.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -817,7 +827,7 @@
     const client = await sb();
     const cleanName = String(fullName || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
-    const redirectTo = window.location.origin + "/user-dashboard.html";
+    const redirectTo = getOrigin() + "/user-dashboard.html";
 
     const { data, error } = await client.auth.signUp({
       email: cleanEmail,
@@ -926,7 +936,7 @@
   async function requestUserPasswordReset(email) {
     const client = await sb();
     const cleanEmail = String(email || "").trim().toLowerCase();
-    const redirectTo = window.location.origin + "/auth.html?mode=reset";
+    const redirectTo = getOrigin() + "/auth.html?mode=reset";
     const { error } = await client.auth.resetPasswordForEmail(cleanEmail, { redirectTo });
     if (error) throw translateSupabaseAuthError(error, "reset");
     return { ok: true };
@@ -985,6 +995,7 @@
     inviteDepartmentUser,
     updateDepartmentUserAdmin,
     getAuthProviderSettings,
+    translateSupabaseAuthError,
     signInWithGoogle,
     signUpUser,
     signInUser,
@@ -994,4 +1005,7 @@
     updateUserPassword,
     signOutUser
   };
-})(window);
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = global.PBSN_SVC;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

@@ -9,7 +9,8 @@
 (function (global) {
   "use strict";
 
-  const { BLOOD_GROUPS, RBC_COMPATIBILITY, SEASONAL_FACTORS } = global.PBSN_DATA;
+  const { BLOOD_GROUPS, RBC_COMPATIBILITY, SEASONAL_FACTORS } =
+    global.PBSN_DATA || (typeof require === "function" ? require("./data.js") : {});
 
   function haversineKm(a, b) {
     const R = 6371;
@@ -330,4 +331,7 @@
     generateInsightsAndTransfers,
     predictWithOptionalBackend
   };
-})(window);
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = global.PBSN_ENGINE;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

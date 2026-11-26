@@ -13,11 +13,12 @@
       return global.__PBSN_ENV__;
     }
 
-    const isHttp = window.location.protocol.startsWith("http");
+    const loc = global.location || { protocol: "http:", hostname: "localhost" };
+    const isHttp = String(loc.protocol || "").startsWith("http");
     const isLocalHost =
       !isHttp ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
+      loc.hostname === "localhost" ||
+      loc.hostname === "127.0.0.1";
 
     const candidates = isHttp
       ? isLocalHost
@@ -25,10 +26,15 @@
         : ["/api/config"]
       : ["http://127.0.0.1:5173/api/config", "http://localhost:5173/api/config"];
 
+    const fetchFn = global.fetch;
+    if (typeof fetchFn !== "function") {
+      throw new Error("Fetch API unavailable in current runtime.");
+    }
+
     let lastErr = null;
     for (const url of candidates) {
       try {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetchFn(url, { cache: "no-store" });
         if (!res.ok) {
           let errBody = "";
           try {
@@ -53,7 +59,7 @@
     throw new Error(
       isLocalHost
         ? `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). Start PBSN with start_pbsn.bat and open http://localhost:5173.`
-        : `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel Environment Variables.`
+        : `Unable to load Supabase runtime config (${lastErr ? lastErr.message : "Failed to fetch"}). Ensure /api/config returns VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.`
     );
   }
 
@@ -79,5 +85,13 @@
     return clientPromise;
   }
 
-  global.PBSN_SUPABASE = { getSupabase, loadConfig };
-})(window);
+  function resetClientForTests() {
+    clientPromise = null;
+    delete global.__PBSN_ENV__;
+  }
+
+  global.PBSN_SUPABASE = { getSupabase, loadConfig, resetClientForTests };
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = global.PBSN_SUPABASE;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

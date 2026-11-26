@@ -376,4 +376,7 @@
     INITIAL_REQUESTS,
     SEASONAL_FACTORS
   };
-})(window);
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = global.PBSN_DATA;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

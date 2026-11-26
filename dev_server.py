@@ -63,6 +63,26 @@ class FrontendDevHandler(BaseHTTPRequestHandler):
         self.send_security_headers()
         self.end_headers()
 
+    @staticmethod
+    def resolve_safe_static_path(root_dir: str, url_path: str) -> tuple[int, str | None]:
+        """Validate a URL path against traversal/hidden/backend rules and resolve on disk."""
+        target = "/index.html" if url_path == "/" else url_path
+        rel = urllib.parse.unquote(target.lstrip("/")).replace("/", os.sep)
+        segments = [seg for seg in rel.split(os.sep) if seg]
+        if (
+            not segments
+            or segments[0].lower() in {"backend", ".git"}
+            or any(seg in {".", ".."} or seg.startswith(".") for seg in segments)
+            or rel.lower().endswith((".py", ".db", ".sqlite", ".log"))
+        ):
+            return 403, None
+
+        root_abs = os.path.abspath(root_dir)
+        full = os.path.abspath(os.path.join(root_abs, rel))
+        if os.path.commonpath([root_abs, full]) != root_abs or not os.path.isfile(full):
+            return 404, None
+        return 200, full
+
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
@@ -79,23 +99,11 @@ class FrontendDevHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        if path == "/":
-            path = "/index.html"
-
-        rel = urllib.parse.unquote(path.lstrip("/")).replace("/", os.sep)
-        segments = [seg for seg in rel.split(os.sep) if seg]
-        if (
-            not segments
-            or segments[0].lower() in {"backend", ".git"}
-            or any(seg.startswith(".") for seg in segments)
-            or rel.lower().endswith((".py", ".db", ".sqlite", ".log"))
-        ):
+        status, full = self.resolve_safe_static_path(ROOT_DIR, path)
+        if status == 403:
             self.send_error(403, "Forbidden")
             return
-
-        root_abs = os.path.abspath(ROOT_DIR)
-        full = os.path.abspath(os.path.join(root_abs, rel))
-        if os.path.commonpath([root_abs, full]) != root_abs or not os.path.isfile(full):
+        if status == 404 or not full:
             self.send_error(404, "Not Found")
             return
 
